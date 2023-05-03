@@ -1,324 +1,403 @@
 <!DOCTYPE html>
 <html lang='pt-BR'>
-  <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Carta Admissional 1.0</title>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.8.0/html2pdf.bundle.min.js" integrity="sha512-w3u9q/DeneCSwUDjhiMNibTRh/1i/gScBVp2imNVAMCt6cUHIw6xzhzcPFIaL3Q1EbI2l+nu17q2aLJJLo4ZYg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Carta Admissional 1.0</title>
 
-    <script>
-      (function (w, d, _) {
-        var save = (e) => {
-          e = e.target;
-          w.localStorage.setItem(e.id, e.value);
-        };
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.8.0/html2pdf.bundle.min.js"
+    integrity="sha512-w3u9q/DeneCSwUDjhiMNibTRh/1i/gScBVp2imNVAMCt6cUHIw6xzhzcPFIaL3Q1EbI2l+nu17q2aLJJLo4ZYg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-        var cptlz = (x) => {
-          return x[0].toUpperCase() + x.substring(1);
-        };
+  <script>
+    (function (w, d, _, $) {
+      Node.prototype.on = (e, f) => {
+        return this.addEventListener(e, f);
+      };
 
-        var _on = () => {
-          var j = d.querySelectorAll("input");
+      HTMLInputElement.prototype
 
-          for (var i = 0; i < j.length; i++) {
-            j[i].id = "i" + i;
-            j[i].value = w.localStorage.getItem(j[i].id) ? w.localStorage.getItem(j[i].id) : "";
-            j[i].addEventListener("blur", save);
-            j[i].addEventListener("onchange", save);
-            j[i].addEventListener("onkeyup", save);
+      var save = (e) => {
+        e = e.target;
+        w.localStorage.setItem(e.id, e.value);
+      };
+
+      var cptlz = (x) => {
+        return x[0].toUpperCase() + x.substring(1);
+      };
+
+      var saveICOeffect = (h) => {
+        ((z) => {
+          z.className = z.className.replace(/( |^)save2? ?/i, '');
+
+          if (h) {
+            z.className += ' save';
+          } else {
+            z.className += ' save2';
           }
+        })($('div.autosave')[0]);
 
-          d.querySelector("span.data").innerHTML = (() => {
-            let x = new Date();
-            return (x.getDate() + "").padStart(2, "0") + " de " + cptlz(x.toLocaleString("default", { month: "long" })) + " de " + x.getFullYear();
-          })();
+        w.setTimeout(() => { saveICOeffect(h ? 0 : 1) }, 700);
+      }
 
-          d.querySelector('.menu .pdf').addEventListener('click', (e)=>{
-            d.body.className = "imprimir";
+      var _on = () => {
+        saveICOeffect();
+        var j = $("input");
 
-            w.setTimeout(()=>{
-              var j = d.querySelectorAll("input");
+        for (var i = 0; i < j.length; i++) {
+          j[i].id = "i" + i;
+          j[i].value = w.localStorage.getItem(j[i].id) ? w.localStorage.getItem(j[i].id) : "";
+          j[i].on("blur", save);
+          j[i].on("onchange", save);
+          j[i].on("onkeyup", save);
+        }
 
+        $("span.data")[0].innerHTML = (() => {
+          let x = new Date();
+          return (x.getDate() + "").padStart(2, "0") + " de " + cptlz(x.toLocaleString("default", { month: "long" })) + " de " + x.getFullYear();
+        })();
+
+        $('.menu .print')[0].on('click', (e) => {
+          d.body.className = "imprimir";
+
+          w.setTimeout(() => {
+            var j = $("input");
+
+            for (var i = 0; i < j.length; i++) {
+              j[i].plc = j[i].getAttribute('placeholder');
+              j[i].removeAttribute('placeholder')
+            }
+
+            let x = $('input[name=nome]')[0].value;
+            x = (x ? x : 'Modelo Carta Admissional') + '.pdf';
+            let opt = {
+              margin: [2.8, 1.5, 2, 1.5],
+              filename: x,
+              image: { type: 'jpeg', quality: 0.98 },
+              html2canvas: { scale: 6 },
+              jsPDF: { unit: 'cm', format: 'A4', orientation: 'portrait' }
+            };
+
+            html2pdf(d.documentElement, opt);
+
+            w.setTimeout(() => {
               for (var i = 0; i < j.length; i++) {
-                j[i].plc = j[i].getAttribute('placeholder');
-                j[i].removeAttribute('placeholder')
+                j[i].setAttribute('placeholder', j[i].plc);
               }
 
-              let x = d.querySelector('input[name=nome]').value;
-              x = (x?x:'Modelo Carta Admissional')+'.pdf';
-              let opt = { 
-                margin:       [2.8, 1.5, 2, 1.5],
-                filename:     x,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 6 },
-                jsPDF:        { unit: 'cm', format: 'A4', orientation: 'portrait' }
-              };
+              d.body.className = '';
+            }, 50);
+          }, 100);
+        });
+      };
 
-              html2pdf(d.documentElement, opt);
-
-              w.setTimeout(()=>{
-                for (var i = 0; i < j.length; i++) {
-                  j[i].setAttribute('placeholder', j[i].plc);
-                }
-
-                d.body.className = '';
-              }, 100);
-            }, 100);
-          });
-        };
-
-	if (["interactive", "complete"].indexOf(d.readyState) >= 0) {
-	  return _on();
-	}
-
-        d.addEventListener("DOMContentLoaded", _on);
-      })(window, document, this);
-    </script>
-
-    <style type="text/css">
-      @charset "UTF-8";
-      @page {
-        size: 21cm 29.7cm;
-        margin-left: 1.5cm;
-        margin-right: 1.2cm;
-        margin-top: 2.8cm;
-        margin-bottom: 2cm;
-        background: #fff;
+      if (["interactive", "complete"].indexOf(d.readyState) >= 0) {
+        return _on();
       }
 
-      div.main{
-        width: calc(100% - .3cm);
-        box-sizing: border-box;
-      }
+      d.on("DOMContentLoaded", _on);
+    })(window, document, this, (x) => { return document.querySelectorAll(x); });
+  </script>
 
-      html,
-      body {
-        background: #fff;
-      }
+  <style type="text/css">
+    @charset "UTF-8";
 
-      p {
-        margin-bottom: 0.21cm;
-        direction: ltr;
-        color: #000000;
-        text-align: justify;
-        orphans: 0;
-        widows: 0;
-        background: transparent;
-      }
+    @page {
+      size: 21cm 29.7cm;
+      margin-left: 1.5cm;
+      margin-right: 1.2cm;
+      margin-top: 2.8cm;
+      margin-bottom: 2cm;
+      background: #fff;
+    }
 
-      * {
-        max-width: calc(21cm - (2 * 1.5cm));
-        line-height: 1.15em;
-      }
-      *,
-      *:after,
-      *:before {
-        font-family: "Noto Sans", "Tahoma", "Arial", "sans-serif";
-        font-size: 10pt;
-        so-language: pt-BR;
-      }
-      *:after,
-      *:before {
-        display: inline-block;
-      }
 
-      table {
-        width: 100%;
-      }
-	
-      table tr,
-      table tr td,
-      table tr td > input {
-        background: #fff;
-      }
-      table tr td {
-        vertical-align: middle;
-        padding: 0.3rem 0.4rem;
-      }
-      table tr td,
-      table tr td > *,
-      table tr td > input {
-        line-height: 2.55rem;
-        height: 2.55rem;
-      }
-      table tr td > input {
-        width: calc(100% + 0.1rem);
-        margin: 0 -0.2rem;
-        border: none;
-        font-weight: bold;
-      }
-      table.fields tr td {
-        border-top: 1px solid #333;
-        border-left: 1px solid #333;
-        white-space: nowrap;
-      }
-      table.fields tr td:last-of-type {
-        border-right: 1px solid #333;
-      }
-      table.fields tr td > span:after {
-        content: "⤵";
-        font-weight: bold;
-        font-size: 8pt;
-        margin-left: 0.8rem;
-      }
-      table.fields tr:last-of-type td {
-        border-bottom: 1px solid #333;
-      }
-      table.fields tr:nth-child(odd),
-      table.fields tr:nth-child(odd) > *,
-      table.fields tr:nth-child(odd) *,
-      table.fields tr:nth-child(odd) * > * {
-        height: 1rem;
-        line-height: 1rem !important;
-        max-height: 1rem;
-      }
-      table.fields tr:nth-child(odd),
-      table.fields tr:nth-child(odd) td {
-        background: #ccc;
-      }
+    div.main {
+      width: calc(100% - .3cm);
+      box-sizing: border-box;
+    }
 
-      table.ass tr td {
-        width: 1rem;
-        line-height: 1rem;
-        vertical-align: top;
-      }
-      table.ass tr td * {
-        line-height: 1rem;
-      }
+    html,
+    body {
+      background: #fff;
+    }
 
-      table.ass tr td input {
-        height: 1.1rem;
-      }
-      table.ass tr td:first-of-type {
-        min-width: 8cm;
-      }
-      table.ass tr td:last-of-type {
-        min-width: 4cm;
-      }
+    p {
+      margin-bottom: 0.2cm;
+      direction: ltr;
+      color: #000000;
+      text-align: justify;
+      orphans: 0;
+      widows: 0;
+      line-height: 1.2em;
+      background: transparent;
+    }
 
-      div.footer {
-        position: fixed;
-        right: -5rem;
-      }
-      
-      div.nota,
-      div.menu,
-      div.cookie{
-        background: #ff3333;
-        color: #fff;
-        padding: .8rem;
-        top: 0;
-        left:0;
-	width: 100%;
-        font-weight: bold;
-        clear: both;
-      }
+    * {
+      line-height: 1.15em;
+      max-width: calc(21cm - 3cm);
+    }
 
-      div.nota{
-        background: rgba(0,0,0,.9);
-	color: #eee;
-      }
+    *,
+    *:after,
+    *:before {
+      font-family: "Noto Sans", "Tahoma", "Arial", "sans-serif";
+      font-size: 10pt;
+    }
 
-      div.menu{
-        background: #dedede;
-      }
+    *:after,
+    *:before {
+      display: inline-block;
+    }
 
-      ::placeholder{
-        font-style: italic;
-      }
+    table {
+      width: 100%;
+    }
 
-      @media print {
-        div.menu,
-        div.nota,
-        div.cookie{
-          display: none;
-        }
+    table tr,
+    table tr td,
+    table tr td>input {
+      background: #fff;
+    }
 
-        ::placeholder{
-         color: #fff;
-         opacity: 0;
-        }
-      }
+    table tr td {
+      vertical-align: middle;
+      padding: 0.3rem 0.4rem;
+    }
 
-      body.imprimir .menu,
-      body.imprimir .nota,
-      body.imprimir .cookie{
-          display: none !important;
-      }
+    table tr td,
+    table tr td>*,
+    table tr td>input {
+      line-height: 2.55rem;
+      height: 2.55rem;
+    }
 
-      body.imprimir ::placeholder,
-      body.imprimir input::placeholder{
-        color: transparent;
-        opacity: 0;
+    table tr td>input {
+      width: calc(100% + 0.1rem);
+      margin: 0 -0.2rem;
+      border: none;
+      font-weight: bold;
+    }
+
+    table.fields tr td {
+      border-top: 1px solid #333;
+      border-left: 1px solid #333;
+      white-space: nowrap;
+    }
+
+    table.fields tr td:last-of-type {
+      border-right: 1px solid #333;
+    }
+
+    table.fields tr td>span:after {
+      content: ": ";
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzODQgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMzUwIDMzNC41YzMuOCA4LjggMiAxOS00LjYgMjZsLTEzNiAxNDRjLTQuNSA0LjgtMTAuOCA3LjUtMTcuNCA3LjVzLTEyLjktMi43LTE3LjQtNy41bC0xMzYtMTQ0Yy02LjYtNy04LjQtMTcuMi00LjYtMjZzMTIuNS0xNC41IDIyLTE0LjVoODhsMC0xOTJjMC0xNy43LTE0LjMtMzItMzItMzJIMzJDMTQuMyA5NiAwIDgxLjcgMCA2NFYzMkMwIDE0LjMgMTQuMyAwIDMyIDBsODAgMGM3MC43IDAgMTI4IDU3LjMgMTI4IDEyOGwwIDE5Mmg4OGM5LjYgMCAxOC4yIDUuNyAyMiAxNC41eiIvPjwvc3ZnPg==') no-repeat;
+      background-position: 1em;
+      font-size: 1em;
+      height: 1em;
+      width: 2em;
+      position: absolute;
+      overflow: hidden;
+    }
+
+    table.fields tr:last-of-type td {
+      border-bottom: 1px solid #333;
+    }
+
+    table.fields tr:nth-child(odd),
+    table.fields tr:nth-child(odd)>*,
+    table.fields tr:nth-child(odd) *,
+    table.fields tr:nth-child(odd) *>* {
+      height: 1rem;
+      line-height: 1rem !important;
+      max-height: 1rem;
+    }
+
+    table.fields tr:nth-child(odd),
+    table.fields tr:nth-child(odd) td {
+      background: #ccc;
+    }
+
+    table.ass tr td {
+      width: 1rem;
+      line-height: 1rem;
+      vertical-align: top;
+    }
+
+    table.ass tr td * {
+      line-height: 1rem;
+    }
+
+    table.ass tr td input {
+      height: 1.1rem;
+    }
+
+    table.ass tr td:first-of-type {
+      min-width: 10cm;
+    }
+
+    table.ass tr td:last-of-type {
+      max-width: 6.8cm;
+    }
+
+    table.ass tr td:last-of-type p:last-of-type {
+      line-height: 2.1rem;
+      margin-top: -.2em;
+    }
+
+    div.footer {
+      position: fixed;
+      right: -5rem;
+    }
+
+    div.autosave,
+    div.nota,
+    div.menu,
+    div.cookie {
+      background: #ff3333;
+      color: #fff;
+      padding: .8rem;
+      top: 0;
+      left: 0;
+      max-width: 100%;
+      font-weight: bold;
+      clear: both;
+    }
+
+    div.autosave,
+    div.nota {
+      background: rgba(255, 100, 0, .5);
+      color: #111;
+    }
+
+    div.menu {
+      background: #dedede;
+    }
+
+    ::placeholder {
+      font-weight: normal;
+      color: #777;
+    }
+
+    @media print {
+      .autosave,
+      .menu,
+      .nota,
+      .cookie {
         display: none;
       }
 
-      .save{
-        background: rgba(0,0,0,.05) url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMjg4IDMyYzAtMTcuNy0xNC4zLTMyLTMyLTMycy0zMiAxNC4zLTMyIDMyVjI3NC43bC03My40LTczLjRjLTEyLjUtMTIuNS0zMi44LTEyLjUtNDUuMyAwcy0xMi41IDMyLjggMCA0NS4zbDEyOCAxMjhjMTIuNSAxMi41IDMyLjggMTIuNSA0NS4zIDBsMTI4LTEyOGMxMi41LTEyLjUgMTIuNS0zMi44IDAtNDUuM3MtMzIuOC0xMi41LTQ1LjMgMEwyODggMjc0LjdWMzJ6TTY0IDM1MmMtMzUuMyAwLTY0IDI4LjctNjQgNjR2MzJjMCAzNS4zIDI4LjcgNjQgNjQgNjRINDQ4YzM1LjMgMCA2NC0yOC43IDY0LTY0VjQxNmMwLTM1LjMtMjguNy02NC02NC02NEgzNDYuNWwtNDUuMyA0NS4zYy0yNSAyNS02NS41IDI1LTkwLjUgMEwxNjUuNSAzNTJINjR6bTM2OCA1NmEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+') no-repeat;
-       }
-
-      .pdf{
-        background: rgba(0,0,0,.05) url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNNjQgNDY0SDk2djQ4SDY0Yy0zNS4zIDAtNjQtMjguNy02NC02NFY2NEMwIDI4LjcgMjguNyAwIDY0IDBIMjI5LjVjMTcgMCAzMy4zIDYuNyA0NS4zIDE4LjdsOTAuNSA5MC41YzEyIDEyIDE4LjcgMjguMyAxOC43IDQ1LjNWMjg4SDMzNlYxNjBIMjU2Yy0xNy43IDAtMzItMTQuMy0zMi0zMlY0OEg2NGMtOC44IDAtMTYgNy4yLTE2IDE2VjQ0OGMwIDguOCA3LjIgMTYgMTYgMTZ6TTE3NiAzNTJoMzJjMzAuOSAwIDU2IDI1LjEgNTYgNTZzLTI1LjEgNTYtNTYgNTZIMTkydjMyYzAgOC44LTcuMiAxNi0xNiAxNnMtMTYtNy4yLTE2LTE2VjQ0OCAzNjhjMC04LjggNy4yLTE2IDE2LTE2em0zMiA4MGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEgxOTJ2NDhoMTZ6bTk2LTgwaDMyYzI2LjUgMCA0OCAyMS41IDQ4IDQ4djY0YzAgMjYuNS0yMS41IDQ4LTQ4IDQ4SDMwNGMtOC44IDAtMTYtNy4yLTE2LTE2VjM2OGMwLTguOCA3LjItMTYgMTYtMTZ6bTMyIDEyOGM4LjggMCAxNi03LjIgMTYtMTZWNDAwYzAtOC44LTcuMi0xNi0xNi0xNkgzMjB2OTZoMTZ6bTgwLTExMmMwLTguOCA3LjItMTYgMTYtMTZoNDhjOC44IDAgMTYgNy4yIDE2IDE2cy03LjIgMTYtMTYgMTZINDQ4djMyaDMyYzguOCAwIDE2IDcuMiAxNiAxNnMtNy4yIDE2LTE2IDE2SDQ0OHY0OGMwIDguOC03LjIgMTYtMTYgMTZzLTE2LTcuMi0xNi0xNlY0MzIgMzY4eiIvPjwvc3ZnPg==') no-repeat;
-       }
-
-      .print{
-        background: rgba(0,0,0,.05) url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMTI4IDBDOTIuNyAwIDY0IDI4LjcgNjQgNjR2OTZoNjRWNjRIMzU0LjdMMzg0IDkzLjNWMTYwaDY0VjkzLjNjMC0xNy02LjctMzMuMy0xOC43LTQ1LjNMNDAwIDE4LjdDMzg4IDYuNyAzNzEuNyAwIDM1NC43IDBIMTI4ek0zODQgMzUydjMyIDY0SDEyOFYzODQgMzY4IDM1MkgzODR6bTY0IDMyaDMyYzE3LjcgMCAzMi0xNC4zIDMyLTMyVjI1NmMwLTM1LjMtMjguNy02NC02NC02NEg2NGMtMzUuMyAwLTY0IDI4LjctNjQgNjR2OTZjMCAxNy43IDE0LjMgMzIgMzIgMzJINjR2NjRjMCAzNS4zIDI4LjcgNjQgNjQgNjRIMzg0YzM1LjMgMCA2NC0yOC43IDY0LTY0VjM4NHpNNDMyIDI0OGEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+') no-repeat;
-       }
-
-      .pdf,
-      .save,
-      .print{
-	text-decoration: none;
-	background-size: 1.5rem;
-        background-position: .3rem center;
-	display: inline-block;
-        margin: -.3rem .5rem;
-        position: relative;
-        padding: .75rem;
-	padding-left: 3rem;
-        cursor: pointer;
-        color: #555;
+      ::placeholder {
+        color: #fff;
+        opacity: 0;
       }
+    }
 
-     .pdf:hover,
-     .save:hover,
-     .print:hover{
-       background-color: #2b92db;
-       color: #fff;
-     }
+    body.imprimir .autosave,
+    body.imprimir .menu,
+    body.imprimir .nota,
+    body.imprimir .cookie {
+      display: none !important;
+    }
 
-     div.versao{
-transform: rotate(-90deg);
-position: absolute;
-right: -3.65cm;
-top: 10.4cm;
-     }
+    body.imprimir ::placeholder,
+    body.imprimir input::placeholder {
+      color: transparent;
+      opacity: 0;
+      display: none;
+    }
 
-     div.versao *,
-     div.versao{
-	text-align: left;
-        font-size: .75rem;
-        color: #444;
-     }
+    .ico.baixar:before {
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMjg4IDMyYzAtMTcuNy0xNC4zLTMyLTMyLTMycy0zMiAxNC4zLTMyIDMyVjI3NC43bC03My40LTczLjRjLTEyLjUtMTIuNS0zMi44LTEyLjUtNDUuMyAwcy0xMi41IDMyLjggMCA0NS4zbDEyOCAxMjhjMTIuNSAxMi41IDMyLjggMTIuNSA0NS4zIDBsMTI4LTEyOGMxMi41LTEyLjUgMTIuNS0zMi44IDAtNDUuM3MtMzIuOC0xMi41LTQ1LjMgMEwyODggMjc0LjdWMzJ6TTY0IDM1MmMtMzUuMyAwLTY0IDI4LjctNjQgNjR2MzJjMCAzNS4zIDI4LjcgNjQgNjQgNjRINDQ4YzM1LjMgMCA2NC0yOC43IDY0LTY0VjQxNmMwLTM1LjMtMjguNy02NC02NC02NEgzNDYuNWwtNDUuMyA0NS4zYy0yNSAyNS02NS41IDI1LTkwLjUgMEwxNjUuNSAzNTJINjR6bTM2OCA1NmEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+') no-repeat;
+    }
 
-    </style>
-  </head>
-  <body>    
-    <div class='versao'><small>//modelos.</small><strong>jcem</strong><small>.pro/modeloCartaRendaAdmissional.html</small> <strong>&nbsp;&nbsp;v 1.0</strong></div>
-    <div class='main'>
-    <div class='cookie'>Usa-se COOKIES, similares e script. É proibido permanecer, usar, imprimir e compartilhar se discordar.</div>
+    .ico.pdf:before {
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMCA2NEMwIDI4LjcgMjguNyAwIDY0IDBIMjI0VjEyOGMwIDE3LjcgMTQuMyAzMiAzMiAzMkgzODRWMzA0SDE3NmMtMzUuMyAwLTY0IDI4LjctNjQgNjRWNTEySDY0Yy0zNS4zIDAtNjQtMjguNy02NC02NFY2NHptMzg0IDY0SDI1NlYwTDM4NCAxMjh6TTE3NiAzNTJoMzJjMzAuOSAwIDU2IDI1LjEgNTYgNTZzLTI1LjEgNTYtNTYgNTZIMTkydjMyYzAgOC44LTcuMiAxNi0xNiAxNnMtMTYtNy4yLTE2LTE2VjQ0OCAzNjhjMC04LjggNy4yLTE2IDE2LTE2em0zMiA4MGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEgxOTJ2NDhoMTZ6bTk2LTgwaDMyYzI2LjUgMCA0OCAyMS41IDQ4IDQ4djY0YzAgMjYuNS0yMS41IDQ4LTQ4IDQ4SDMwNGMtOC44IDAtMTYtNy4yLTE2LTE2VjM2OGMwLTguOCA3LjItMTYgMTYtMTZ6bTMyIDEyOGM4LjggMCAxNi03LjIgMTYtMTZWNDAwYzAtOC44LTcuMi0xNi0xNi0xNkgzMjB2OTZoMTZ6bTgwLTExMmMwLTguOCA3LjItMTYgMTYtMTZoNDhjOC44IDAgMTYgNy4yIDE2IDE2cy03LjIgMTYtMTYgMTZINDQ4djMyaDMyYzguOCAwIDE2IDcuMiAxNiAxNnMtNy4yIDE2LTE2IDE2SDQ0OHY0OGMwIDguOC03LjIgMTYtMTYgMTZzLTE2LTcuMi0xNi0xNlY0MzIgMzY4eiIvPjwvc3ZnPg==') no-repeat;
+    }
+
+    .ico.print:before {
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMTI4IDBDOTIuNyAwIDY0IDI4LjcgNjQgNjR2OTZoNjRWNjRIMzU0LjdMMzg0IDkzLjNWMTYwaDY0VjkzLjNjMC0xNy02LjctMzMuMy0xOC43LTQ1LjNMNDAwIDE4LjdDMzg4IDYuNyAzNzEuNyAwIDM1NC43IDBIMTI4ek0zODQgMzUydjMyIDY0SDEyOFYzODQgMzY4IDM1MkgzODR6bTY0IDMyaDMyYzE3LjcgMCAzMi0xNC4zIDMyLTMyVjI1NmMwLTM1LjMtMjguNy02NC02NC02NEg2NGMtMzUuMyAwLTY0IDI4LjctNjQgNjR2OTZjMCAxNy43IDE0LjMgMzIgMzIgMzJINjR2NjRjMCAzNS4zIDI4LjcgNjQgNjQgNjRIMzg0YzM1LjMgMCA2NC0yOC43IDY0LTY0VjM4NHpNNDMyIDI0OGEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+') no-repeat;
+    }
+
+    .ico.save:before {
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNNjQgMzJDMjguNyAzMiAwIDYwLjcgMCA5NlY0MTZjMCAzNS4zIDI4LjcgNjQgNjQgNjRIMzg0YzM1LjMgMCA2NC0yOC43IDY0LTY0VjE3My4zYzAtMTctNi43LTMzLjMtMTguNy00NS4zTDM1MiA1MC43QzM0MCAzOC43IDMyMy43IDMyIDMwNi43IDMySDY0em0wIDk2YzAtMTcuNyAxNC4zLTMyIDMyLTMySDI4OGMxNy43IDAgMzIgMTQuMyAzMiAzMnY2NGMwIDE3LjctMTQuMyAzMi0zMiAzMkg5NmMtMTcuNyAwLTMyLTE0LjMtMzItMzJWMTI4ek0yMjQgMjg4YTY0IDY0IDAgMSAxIDAgMTI4IDY0IDY0IDAgMSAxIDAtMTI4eiIvPjwvc3ZnPg==') no-repeat;
+    }
+
+    .ico.save2:before {
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNNDggOTZWNDE2YzAgOC44IDcuMiAxNiAxNiAxNkgzODRjOC44IDAgMTYtNy4yIDE2LTE2VjE3MC41YzAtNC4yLTEuNy04LjMtNC43LTExLjNsMzMuOS0zMy45YzEyIDEyIDE4LjcgMjguMyAxOC43IDQ1LjNWNDE2YzAgMzUuMy0yOC43IDY0LTY0IDY0SDY0Yy0zNS4zIDAtNjQtMjguNy02NC02NFY5NkMwIDYwLjcgMjguNyAzMiA2NCAzMkgzMDkuNWMxNyAwIDMzLjMgNi43IDQ1LjMgMTguN2w3NC41IDc0LjUtMzMuOSAzMy45TDMyMC44IDg0LjdjLS4zLS4zLS41LS41LS44LS44VjE4NGMwIDEzLjMtMTAuNyAyNC0yNCAyNEgxMDRjLTEzLjMgMC0yNC0xMC43LTI0LTI0VjgwSDY0Yy04LjggMC0xNiA3LjItMTYgMTZ6bTgwLTE2djgwSDI3MlY4MEgxMjh6bTMyIDI0MGE2NCA2NCAwIDEgMSAxMjggMCA2NCA2NCAwIDEgMSAtMTI4IDB6Ii8+PC9zdmc+') no-repeat;
+    }
+
+    .ico:before {
+      content: " ";
+      display: inline-block;
+      min-height: 1.5em;
+      width: 1.5em;
+      float: left;
+      margin-right: .5em;
+    }
+
+    .pdf,
+    .baixar,
+    .print {
+      text-decoration: none;
+      background-size: 1.5rem;
+      background-position: .3rem center;
+      display: inline-block;
+      margin: -.3rem .1rem;
+      position: relative;
+      padding: .75rem;
+      cursor: pointer;
+      color: #555;
+      border-radius: .3em;
+    }
+
+    .ico {
+      line-height: 1.6em;
+    }
+
+    .pdf:hover,
+    .baixar:hover,
+    .print:hover {
+      background-color: #2b92db;
+      color: #fff;
+    }
+
+    div.versao {
+      transform: rotate(-90deg);
+      position: absolute;
+      right: -3.65cm;
+      top: 10.4cm;
+    }
+
+    div.versao *,
+    div.versao {
+      text-align: left;
+      font-size: .8em;
+      color: #000;
+    }
+  </style>
+</head>
+
+<body>
+  <div class='versao'>1.0 | modelos.jcem.pro/modeloCartaRendaAdmissional.html</div>
+  <div class='main'>
+    <div class='cookie'>Usa-se COOKIES, similares e script. É proibido permanecer, usar, imprimir e compartilhar se
+      discordar.</div>
     <div class='nota'>Ao imprimir, desabilite o cabeçalho e rodape!</div>
+    <div class='ico autosave'>Os dados são automaticamente salvos enquanto digita.</div>
 
     <div class='menu'>
-	<div class='print' style="display: none;" onclick="window.print();">Imprimir</div>
-	<div class='pdf'>Imprimir em PDF</div>
-	<a class='save' onclick="this.href='data:text/html;charset=UTF-8,'+encodeURIComponent(document.documentElement.outerHTML)" href="#" download="page.html"">Baixar/Salvar Editor</a>
+      <div class='ico print' style="display: none;" onclick="window.print();">Imprimir</div>
+      <div class='ico print'>Imprimir em PDF</div>
+      <a class='ico baixar'
+        onclick="this.href='data:text/html;charset=UTF-8,'+encodeURIComponent(document.documentElement.outerHTML)"
+        href="#" download="page.html">Baixar/Salvar Editor</a>
     </div>
     <p>&nbsp;</p>
-    <p style="text-align: right;">Pirassununga-SP, <span class="data"></span>,</p>
+    <p style=" text-align: right;">Pirassununga-SP, <span class="data"></span>,</p>
     <p>&nbsp;</p>
     <p>
       <b>Ao</b><br />
@@ -326,7 +405,9 @@ top: 10.4cm;
     </p>
     <p>&nbsp;</p>
     <p>
-      Declaro(amos) que a pessoa abaixo qualificada pertence ao meu(nosso) quadro de funcionários ou contratados, conforme dados abaixo, que ora valido(amos) e confirmo(amos); responsabilizando-me(nos) por comunicar qualquer alteração e/ou remoção do quadro.
+      Declaro(amos) que a pessoa abaixo qualificada pertence ao meu(nosso) quadro de funcionários ou contratados,
+      conforme dados abaixo, que ora valido(amos) e confirmo(amos); responsabilizando-me(nos) por comunicar qualquer
+      alteração e/ou remoção do quadro.
     </p>
 
     <table cellpadding="0" cellspacing="0" class="fields">
@@ -353,7 +434,7 @@ top: 10.4cm;
             <input type="text" placeholder="dinosauro@sauros.com.br" />
           </td>
           <td>
-            <input type="text" placeholder="(19) 9 9999-9999" />
+            <input type="text" placeholder="(99) 9 9999-9999" />
           </td>
           <td>
             <input type="text" placeholder="(19) 9 9999-9999" />
@@ -396,7 +477,7 @@ top: 10.4cm;
             <input type="text" placeholder="Pai de Família" />
           </td>
           <td>
-            <input type="text" placeholder="9999,99" />
+            <input type="text" placeholder="9.999,99" />
           </td>
         </tr>
       </tbody>
@@ -409,13 +490,12 @@ top: 10.4cm;
           <p>&nbsp;</p>
           <p>&nbsp;</p>
         </td>
-        <td style="width: 1rem;"></td>
+        <td style="width: .5cm;max-width: .5cm;"></td>
         <td>
-          <p style="line-height: 2.7rem;">
-            Reconhecimento de Firma BB ou documento validado por telefone em _____ / _____ / 20 _____ as _____: ______, com o(a) funcionário(a) ___________________________________________________
+          <p>Reconhecimento de Firma BB ou documento validado por telefone em</p>
+          <p>_____ / _____ / 20 _____ as _____H
+            ______M, com _____________________________
           </p>
-          <p></p>
-          <p></p>
         </td>
       </tr>
       <tr>
@@ -427,10 +507,12 @@ top: 10.4cm;
         </td>
         <td></td>
         <td style="border-top: 1px solid #111;">
-            Carimbo e Assinatura funcionário BB ou <u>assinatura </u><span><u>DIGITAL</u></span> (<span>vide</span> <span><b>RODAPÉ</b></span>)
+          Carimbo e Assinatura funcionário BB ou <u>assinatura </u><span><u>DIGITAL</u></span> (<span>vide</span>
+          <span><b>RODAPÉ</b></span>)
         </td>
       </tr>
     </table>
-    </div>
-  </body>
+  </div>
+</body>
+
 </html>
