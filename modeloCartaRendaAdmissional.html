@@ -83,11 +83,17 @@
       @page {
         size: 21cm 29.7cm;
         margin-left: 1.5cm;
-        margin-right: 1.5cm;
+        margin-right: 1.2cm;
         margin-top: 2.8cm;
         margin-bottom: 2cm;
         background: #fff;
       }
+
+      div.main{
+        width: calc(100% - .3cm);
+        box-sizing: border-box;
+      }
+
       html,
       body {
         background: #fff;
@@ -283,9 +289,26 @@
        background-color: #2b92db;
        color: #fff;
      }
+
+     div.versao{
+transform: rotate(-90deg);
+position: absolute;
+right: -3.65cm;
+top: 10.4cm;
+     }
+
+     div.versao *,
+     div.versao{
+	text-align: left;
+        font-size: .75rem;
+        color: #444;
+     }
+
     </style>
   </head>
-  <body text="#000000" link="#000080" vlink="#800000" dir="ltr">
+  <body>    
+    <div class='versao'><small>//modelos.</small><strong>jcem</strong><small>.pro/modeloCartaRendaAdmissional.html</small> <strong>&nbsp;&nbsp;v 1.0</strong></div>
+    <div class='main'>
     <div class='cookie'>Usa-se COOKIES, similares e script. É proibido permanecer, usar, imprimir e compartilhar se discordar.</div>
     <div class='nota'>Ao imprimir, desabilite o cabeçalho e rodape!</div>
 
@@ -408,6 +431,6 @@
         </td>
       </tr>
     </table>
+    </div>
   </body>
 </html>
-
