@@ -43,7 +43,27 @@
         w.setTimeout(() => { saveICOeffect(h ? 0 : 1) }, 700);
       }
 
+      async function checkVersion(){
+        let x = window.location.href.match(/^https?\:\/\/\w+\.jcem.pro/i);
+        x = (Array.isArray(x) && x.length > 0) ? 1 : 0;
+
+        if (!x) {
+          try {
+            fetch(window.location.href).then((html) => {
+              console.log(html);
+              fetch('https://api.github.com/repos/JeanCarloEM/modelos.jcem.pro/contents/modeloCartaRendaAdmissional.html').then((g) => {
+                console.log(g);
+              });
+            });
+          } catch (err) {
+            alert(err);
+          }
+        }
+      }
+
       var _on = () => {
+        checkVersion();
+
         saveICOeffect();
         var j = $("input");
 
@@ -283,6 +303,7 @@
     }
 
     @media print {
+
       .autosave,
       .menu,
       .nota,
