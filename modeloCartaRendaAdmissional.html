@@ -6,6 +6,8 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta http-equiv="Access-Control-Allow-Origin" content="*">
+  <meta http-equiv="Access-Control-Allow-Headers" content="Content-Type">
   <title>Carta Admissional 1.0</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.8.0/html2pdf.bundle.min.js"
@@ -43,26 +45,45 @@
         w.setTimeout(() => { saveICOeffect(h ? 0 : 1) }, 700);
       }
 
-      async function checkVersion(){
-        let x = window.location.href.match(/^https?\:\/\/\w+\.jcem.pro/i);
-        x = (Array.isArray(x) && x.length > 0) ? 1 : 0;
+      // em desenvolvimento - problema? cross origin
+      // a resolver
+      async function checkVersion() {
+        if (w.Worker) {
+          var fworker = ['(', function () {
+            var href;/* sera substituido pelo .toString().replace */
+            let x = href.match(/^https?\:\/\/\w+\.jcem.pro/i);
+            x = (Array.isArray(x) && x.length > 0) ? 1 : 0;
 
-        if (!x) {
-          try {
-            fetch(window.location.href).then((html) => {
-              console.log(html);
-              fetch('https://api.github.com/repos/JeanCarloEM/modelos.jcem.pro/contents/modeloCartaRendaAdmissional.html').then((g) => {
-                console.log(g);
+            if (!x) {
+              fetch('https://api.github.com/repos/JeanCarloEM/modelos.jcem.pro/contents/modeloCartaRendaAdmissional.html', {
+                redirect: "follow", // manual, *follow, error
+                referrerPolicy: "no-referrer",
+                mode: "no-cors", // no-cors, *cors, same-origin
+                cache: "no-cache",
+                headers: {
+                  "Content-Type": "application/json",
+                }
+              }).then((github) => {
+                console.log(JSON.stringify(github.body));
+
+                fetch(href).then((html) => {
+                  console.log(html);
+                });
               });
-            });
-          } catch (err) {
-            alert(err);
-          }
+
+            }
+          }.toString().replace(/var href;/i, "var href = '" + w.location.href + "';"),
+            ')()'];
+
+          new Worker(URL.createObjectURL(new Blob(fworker, { type: 'application/javascript' })));
         }
       }
 
       var _on = () => {
-        checkVersion();
+        try {
+          checkVersion();
+        } catch (err) {
+        }
 
         saveICOeffect();
         var j = $("input");
