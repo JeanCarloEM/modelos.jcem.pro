@@ -14,11 +14,9 @@
 
   <script>
     (function (w, d, _, $) {
-      Node.prototype.on = (e, f) => {
+      Node.prototype.on = function(e, f) {
         return this.addEventListener(e, f);
       };
-
-      HTMLInputElement.prototype
 
       var save = (e) => {
         e = e.target;
@@ -60,7 +58,8 @@
           return (x.getDate() + "").padStart(2, "0") + " de " + cptlz(x.toLocaleString("default", { month: "long" })) + " de " + x.getFullYear();
         })();
 
-        $('.menu .print')[0].on('click', (e) => {
+        $('.menu .pdf.print')[0].on('click', (e) => {
+          console.log("Imprimindo PDF");
           d.body.className = "imprimir";
 
           w.setTimeout(() => {
@@ -391,7 +390,7 @@
 
     <div class='menu'>
       <div class='ico print' style="display: none;" onclick="window.print();">Imprimir</div>
-      <div class='ico print'>Imprimir em PDF</div>
+      <div class='ico pdf print'>Imprimir em PDF</div>
       <!--<a class='ico baixar'
         onclick="this.href='data:text/html;charset=UTF-8,'+encodeURIComponent(document.documentElement.outerHTML)"
         href="#" download="page.html">Baixar/Salvar Editor</a>-->
