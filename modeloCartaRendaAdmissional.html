@@ -46,10 +46,9 @@
         var j = $("input");
 
         for (var i = 0; i < j.length; i++) {
-          if ((j[i].id) && (j[i].id.length > 1)){
-            continue;
+          if ((!j[i].id) || (j[i].id.length < 2)){
+            j[i].id = "i" + i;
           }
-          j[i].id = "i" + i;
           j[i].value = w.localStorage.getItem(j[i].id) ? w.localStorage.getItem(j[i].id) : "";
           j[i].on("blur", save);
           j[i].on("onchange", save);
@@ -63,9 +62,10 @@
 
         $('.menu .clear')[0].on('click', (e) => {
           var j = $("input");
+          console.log('aaa');
   
           for (var i = 0; i < j.length; i++) {
-            if (!j[i].match(/^i\d+$/i)){
+            if (!j[i].id.match(/^i\d+$/i)){
               continue;
             }
             
@@ -357,6 +357,8 @@
       margin-right: .5em;
     }
 
+    .btb,
+    .clear,
     .pdf,
     .baixar,
     .print {
@@ -376,6 +378,8 @@
       line-height: 1.6em;
     }
 
+    .clear:hover,
+    .btb:hover,
     .pdf:hover,
     .baixar:hover,
     .print:hover {
