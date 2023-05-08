@@ -46,6 +46,9 @@
         var j = $("input");
 
         for (var i = 0; i < j.length; i++) {
+          if ((j[i].id) && (j[i].id.length > 1)){
+            continue;
+          }
           j[i].id = "i" + i;
           j[i].value = w.localStorage.getItem(j[i].id) ? w.localStorage.getItem(j[i].id) : "";
           j[i].on("blur", save);
@@ -58,6 +61,18 @@
           return (x.getDate() + "").padStart(2, "0") + " de " + cptlz(x.toLocaleString("default", { month: "long" })) + " de " + x.getFullYear();
         })();
 
+        $('.menu .clear')[0].on('click', (e) => {
+          var j = $("input");
+  
+          for (var i = 0; i < j.length; i++) {
+            if (!j[i].match(/^i\d+$/i)){
+              continue;
+            }
+            
+            j[i].value = "";
+          }          
+        });
+        
         $('.menu .pdf.print')[0].on('click', (e) => {
           console.log("Imprimindo PDF");
           d.body.className = "imprimir";
@@ -320,6 +335,10 @@
     .ico.print:before {
       background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMTI4IDBDOTIuNyAwIDY0IDI4LjcgNjQgNjR2OTZoNjRWNjRIMzU0LjdMMzg0IDkzLjNWMTYwaDY0VjkzLjNjMC0xNy02LjctMzMuMy0xOC43LTQ1LjNMNDAwIDE4LjdDMzg4IDYuNyAzNzEuNyAwIDM1NC43IDBIMTI4ek0zODQgMzUydjMyIDY0SDEyOFYzODQgMzY4IDM1MkgzODR6bTY0IDMyaDMyYzE3LjcgMCAzMi0xNC4zIDMyLTMyVjI1NmMwLTM1LjMtMjguNy02NC02NC02NEg2NGMtMzUuMyAwLTY0IDI4LjctNjQgNjR2OTZjMCAxNy43IDE0LjMgMzIgMzIgMzJINjR2NjRjMCAzNS4zIDI4LjcgNjQgNjQgNjRIMzg0YzM1LjMgMCA2NC0yOC43IDY0LTY0VjM4NHpNNDMyIDI0OGEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+') no-repeat;
     }
+    
+    .ico.clear:before {
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1NzYgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNNTY2LjYgNTQuNmMxMi41LTEyLjUgMTIuNS0zMi44IDAtNDUuM3MtMzIuOC0xMi41LTQ1LjMgMGwtMTkyIDE5Mi0zNC43LTM0LjdjLTQuMi00LjItMTAtNi42LTE2LTYuNmMtMTIuNSAwLTIyLjYgMTAuMS0yMi42IDIyLjZ2MjkuMUwzNjQuMyAzMjBoMjkuMWMxMi41IDAgMjIuNi0xMC4xIDIyLjYtMjIuNmMwLTYtMi40LTExLjgtNi42LTE2bC0zNC43LTM0LjcgMTkyLTE5MnpNMzQxLjEgMzUzLjRMMjIyLjYgMjM0LjljLTQyLjctMy43LTg1LjIgMTEuNy0xMTUuOCA0Mi4zbC04IDhDNzYuNSAzMDcuNSA2NCAzMzcuNyA2NCAzNjkuMmMwIDYuOCA3LjEgMTEuMiAxMy4yIDguMmw1MS4xLTI1LjVjNS0yLjUgOS41IDQuMSA1LjQgNy45TDcuMyA0NzMuNEMyLjcgNDc3LjYgMCA0ODMuNiAwIDQ4OS45QzAgNTAyLjEgOS45IDUxMiAyMi4xIDUxMmwxNzMuMyAwYzM4LjggMCA3NS45LTE1LjQgMTAzLjQtNDIuOGMzMC42LTMwLjYgNDUuOS03My4xIDQyLjMtMTE1Ljh6Ii8+PC9zdmc+') no-repeat;
+    }   
 
     .ico.save:before {
       background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNNjQgMzJDMjguNyAzMiAwIDYwLjcgMCA5NlY0MTZjMCAzNS4zIDI4LjcgNjQgNjQgNjRIMzg0YzM1LjMgMCA2NC0yOC43IDY0LTY0VjE3My4zYzAtMTctNi43LTMzLjMtMTguNy00NS4zTDM1MiA1MC43QzM0MCAzOC43IDMyMy43IDMyIDMwNi43IDMySDY0em0wIDk2YzAtMTcuNyAxNC4zLTMyIDMyLTMySDI4OGMxNy43IDAgMzIgMTQuMyAzMiAzMnY2NGMwIDE3LjctMTQuMyAzMi0zMiAzMkg5NmMtMTcuNyAwLTMyLTE0LjMtMzItMzJWMTI4ek0yMjQgMjg4YTY0IDY0IDAgMSAxIDAgMTI4IDY0IDY0IDAgMSAxIDAtMTI4eiIvPjwvc3ZnPg==') no-repeat;
@@ -391,6 +410,7 @@
     <div class='menu'>
       <div class='ico print' style="display: none;" onclick="window.print();">Imprimir</div>
       <div class='ico pdf print'>Imprimir em PDF</div>
+      <div class='ico clear'>Limpar</div>
       <!--<a class='ico baixar'
         onclick="this.href='data:text/html;charset=UTF-8,'+encodeURIComponent(document.documentElement.outerHTML)"
         href="#" download="page.html">Baixar/Salvar Editor</a>-->
@@ -499,9 +519,9 @@
       </tr>
       <tr>
         <td style="border-top: 1px solid #111;">
-          <input type="text" name="nome" placeholder="Nome Empresa" /><br />
-          <input type="text" name="cnpj" placeholder="CNPJ Empresa" />
-          <input type="text" name="fone" placeholder="Telefone Empresa com DDD" /><br />
+          <input type="text" id="nome" name="nome" placeholder="Nome Empresa" /><br />
+          <input type="text" id="cnpj" name="cnpj" placeholder="CNPJ Empresa" />
+          <input type="text" id="fone" name="fone" placeholder="Telefone Empresa com DDD" /><br />
           <span>Carimbo/Nome do Representante</span>
         </td>
         <td></td>
