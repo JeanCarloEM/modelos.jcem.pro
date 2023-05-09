@@ -13,7 +13,7 @@
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <script>
-    (function (w, d, _, $) {
+    (function (w, d, _, $, st) {
       const msgFoneTit = "TELEFONE da empresa INVÁLIDO!";
       const msgFone = msgFoneTit + '\n\n\t- Deve conter 11 digitos\n\t- Um DDD Válido\n\t- Iniciar com "9"';
       const msgCNPJ = 'CNPJ da empresa Inválido';
@@ -67,7 +67,7 @@
           return s && (e.value.trim().length > 0) ? alert(msg(e, r)) : 0;
         }
 
-        w.localStorage.setItem(e.id, e.value);
+        st.setItem(e.id, e.value);
       };
 
       var cptlz = (x) => {
@@ -213,16 +213,34 @@
         })(msgField.replace(/\$\{0\}/g, e.getAttribute('hint')));
       };
 
+      var loadTimbre = () => {
+        var p = st.getItem('timbre');
+
+        if (!p) {
+          return;
+        }
+
+        ((x) => {
+          x.src = p;
+          x.style.display = "block";
+        })($('img.logo')[0]);
+      };
+
       var _on = () => {
         saveICOeffect();
+        loadTimbre();
 
         var j = $("input");
 
         for (var i = 0; i < j.length; i++) {
+          if (j[i].getAttribute('type') == 'file') {
+            continue;
+          }
+
           if ((!j[i].id) || (j[i].id.length < 2)) {
             j[i].id = "i" + i;
           }
-          j[i].value = w.localStorage.getItem(j[i].id) ? w.localStorage.getItem(j[i].id) : "";
+          j[i].value = st.getItem(j[i].id) ? st.getItem(j[i].id) : "";
           j[i].on("blur", save);
           j[i].on("onkeyup", save);
         }
@@ -231,6 +249,23 @@
           let x = new Date();
           return (x.getDate() + "").padStart(2, "0") + " de " + cptlz(x.toLocaleString("default", { month: "long" })) + " de " + x.getFullYear();
         })();
+
+        $('input[type=file]')[0].on('change', (e) => {
+          e = e.target;
+
+          const r = new FileReader();
+
+          r.addEventListener("load", () => {
+            st.setItem("timbre", r.result);
+            w.setTimeout(loadTimbre, 100);
+          }, false);
+
+          if (e.files.length === 0) {
+            return;
+          }
+
+          r.readAsDataURL(e.files[0]);
+        });
 
         $('.menu .clear')[0].on('click', (e) => {
           var j = $("input");
@@ -288,7 +323,7 @@
       }
 
       d.on("DOMContentLoaded", _on);
-    })(window, document, this, (x) => { return document.querySelectorAll(x); });
+    })(window, document, this, (x) => { return document.querySelectorAll(x); }, window.localStorage);
   </script>
 
   <style type="text/css">
@@ -374,7 +409,7 @@
       size: 21cm 29.7cm;
       margin-left: 1.5cm;
       margin-right: 1.2cm;
-      margin-top: 2.8cm;
+      margin-top: 1cm;
       margin-bottom: 2cm;
       background: #fff;
     }
@@ -517,6 +552,13 @@
       right: -5rem;
     }
 
+    img.logo {
+      display: none;
+      max-height: 2.5cm;
+      max-width: 100%;
+      margin-bottom: .65cm;
+    }
+
     div.autosave,
     div.nota,
     div.menu,
@@ -540,7 +582,7 @@
       color: #eee;
     }
 
-    div.autosave:before{
+    div.autosave:before {
       color: red;
     }
 
@@ -625,7 +667,7 @@
       margin: 0;
     }
 
-    .menu > * {
+    .menu>* {
       position: relative;
       text-decoration: none;
       background-size: 1.5rem;
@@ -639,7 +681,14 @@
       border-radius: .3em;
     }
 
-    .menu > *:hover {
+    .menu input {
+      position: fixed;
+      left: -10rem;
+      top: -10rem;
+      width: 1px;
+    }
+
+    .menu>*:hover {
       background-color: #2b92db;
       color: #fff;
     }
@@ -677,12 +726,13 @@
       <div class='ico print' style="display: none;">Imprimir</div>
       <div class='ico pdf print'>Imprimir PDF</div>
       <div class='ico clear'>Limpar</div>
-      <div class='ico timbre'>Timbre</div>
+      <input type='file' id="logo" accept=".svg,.jpg,.jpeg,.png" />
+      <label for="logo" class='ico timbre'>Timbre</label>
       <!--<a class='ico baixar'
         onclick="this.href='data:text/html;charset=UTF-8,'+encodeURIComponent(document.documentElement.outerHTML)"
         href="#" download="page.html">Baixar/Salvar Editor</a>-->
     </div>
-    <p>&nbsp;</p>
+    <p><img class="logo" /></p>
     <p style=" text-align: right;">Pirassununga-SP, <span class="data"></span>,</p>
     <p>&nbsp;</p>
     <p>
