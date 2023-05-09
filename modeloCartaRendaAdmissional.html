@@ -6,9 +6,7 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <meta http-equiv="Access-Control-Allow-Origin" content="*">
-  <meta http-equiv="Access-Control-Allow-Headers" content="Content-Type">
-  <title>Carta Admissional 1.0</title>
+  <title>Carta Renda Admissional</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.8.0/html2pdf.bundle.min.js"
     integrity="sha512-w3u9q/DeneCSwUDjhiMNibTRh/1i/gScBVp2imNVAMCt6cUHIw6xzhzcPFIaL3Q1EbI2l+nu17q2aLJJLo4ZYg=="
@@ -16,19 +14,143 @@
 
   <script>
     (function (w, d, _, $) {
-      Node.prototype.on = (e, f) => {
+      const msgFoneTit = "TELEFONE da empresa INVÁLIDO!";
+      const msgFone = msgFoneTit + '\n\n\t- Deve conter 11 digitos\n\t- Um DDD Válido\n\t- Iniciar com "9"';
+      const msgCNPJ = 'CNPJ da empresa Inválido';
+      const msgNome = 'Nome da empresa Inválido!';
+      const msgField = "Campo '${0}' vazio ou inválido";
+
+      Node.prototype.on = function (e, f) {
         return this.addEventListener(e, f);
       };
 
-      HTMLInputElement.prototype
+      var msg = (e, r, tit) => {
+        return e.hasAttribute('empresa') ? (
+          e.id == 'nome' ? msgNome : (e.id == 'cnpj' ? msgCNPJ : (tit ? msgFoneTit : msgFone))
+        ) : r;
+      };
+
+      var chkInputs = () => {
+        var i = $('input');
+        var err = '';
+        for (var j = 0; j < i.length; j++) {
+          let r = vEl(i[j]);
+          if (typeof r === 'string') {
+            err += (err ? '\r\n' : '') + msg(i[j], r, 1);
+          }
+        }
+
+        if (err.length > 0) {
+          alert(err);
+          return false;
+        }
+
+        return true;
+      }
 
       var save = (e) => {
+        let ev = e;
         e = e.target;
+        if (e.tratando) {
+          return;
+        }
+        e.tratando = true;
+        if (!e) return;
+        let s = (ev.type === 'blur');
+        var r = vEl(e, s);
+
+        w.setTimeout(() => {
+          e.tratando = false;
+        }, 100);
+
+        if (r) {
+          return s && (e.value.trim().length > 0) ? alert(msg(e, r)) : 0;
+        }
+
         w.localStorage.setItem(e.id, e.value);
       };
 
       var cptlz = (x) => {
         return x[0].toUpperCase() + x.substring(1);
+      };
+
+      w.m11 = (n, m, rr) => {
+        rr = (typeof rr === "undefined") ? false : rr;
+        if (typeof m === "undefined") {
+          throw "window.m11: invalid multiplayer 'm'";
+          return false;
+        };
+
+        var i = 0;
+        var r = (n + '').split("").reduce((p, a) => {
+          if (i > m.length - 1) {
+            i = 0
+          }
+
+          return (m[i++] * parseInt(a)) + p;
+        }, 0) % 11;
+
+        return rr ? r : ((11 - r) >= 10) ? 0 : (11 - r);
+      };
+
+      var foneError = (c) => {
+        c = c.replace(/[^\d]/g, '');
+
+        if (c.length != 11) {
+          return -1;
+        }
+
+        if (c[2] != 9) {
+          return -2;
+        }
+
+        if (parseInt(c.substring(0, 2)) < 11) {
+          return -3;
+        }
+
+        return "(" + c.substring(0, 2) + ") " + c[2] + ' ' + c.substring(3, 7) + '-' + c.substring(7);
+      };
+
+      var cnpjError = (c) => {
+        c = (c + '').replace(/[^\d]/g, '');
+
+        if ((c.length > 14) || (c.length < 3)) {
+          return -1;
+        }
+
+        c = c.padStart(14, '0');
+        var nn = c.substring(0, 12);
+
+        if (c[12] != w.m11(nn, '543298765432')) {
+          return -2;
+        }
+
+        if (c[13] != w.m11(nn + c[12], '6543298765432')) {
+          return -3;
+        }
+
+        return c[0] + c[1] + '.' + c[2] + c[3] + c[4] + '.' + c[5] + c[6] + c[7] + '/' + c[8] + c[9] + c[10] + c[11] + '-' + c[12] + c[13];
+      };
+
+      var cpfError = (c) => {
+        c = (c + '').replace(/[^\d]/g, '');
+
+        if (c.length !== 11) {
+          return -1;
+        }
+
+        c = c.padStart(11, '0');
+        var nn = c.substring(0, 9);
+
+        if (c[9] != w.m11(nn, [10, 9, 8, 7, 6, 5, 4, 3, 2])) {
+          return -2;
+        }
+
+        if (c[10] != w.m11(nn + c[9], [11, 10, 9, 8, 7, 6, 5, 4, 3, 2])) {
+          return -3;
+        }
+
+        return c.substring(0, 3) + '.' + c.substring(3, 6) + '.' + c.substring(6, 9) + '-' + c[9] + c[10];
       };
 
       var saveICOeffect = (h) => {
@@ -45,54 +167,63 @@
         w.setTimeout(() => { saveICOeffect(h ? 0 : 1) }, 700);
       }
 
-      // em desenvolvimento - problema? cross origin
-      // a resolver
-      async function checkVersion() {
-        if (w.Worker) {
-          var fworker = ['(', function () {
-            var href;/* sera substituido pelo .toString().replace */
-            let x = href.match(/^https?\:\/\/\w+\.jcem.pro/i);
-            x = (Array.isArray(x) && x.length > 0) ? 1 : 0;
+      var vEl = (e, s) => {
+        return ((m) => {
+          if (e.getAttribute('type').toLowerCase() === 'tel') {
+            var r = foneError(e.value);
 
-            if (!x) {
-              fetch('https://api.github.com/repos/JeanCarloEM/modelos.jcem.pro/contents/modeloCartaRendaAdmissional.html', {
-                redirect: "follow", // manual, *follow, error
-                referrerPolicy: "no-referrer",
-                mode: "no-cors", // no-cors, *cors, same-origin
-                cache: "no-cache",
-                headers: {
-                  "Content-Type": "application/json",
-                }
-              }).then((github) => {
-                console.log(JSON.stringify(github.body));
-
-                fetch(href).then((html) => {
-                  console.log(html);
-                });
-              });
-
+            if (typeof r === 'string') {
+              return s ? (e.value = r) && 0 : 0;
             }
-          }.toString().replace(/var href;/i, "var href = '" + w.location.href + "';"),
-            ')()'];
 
-          new Worker(URL.createObjectURL(new Blob(fworker, { type: 'application/javascript' })));
-        }
-      }
+            return e.hasAttribute('required') ? m : 0;
+          }
+
+          if (e.id == 'cnpj') {
+            var r = cnpjError(e.value);
+
+            if (typeof r === 'string') {
+              return s ? (e.value = r) && 0 : 0;
+            }
+
+            return e.hasAttribute('required') ? 1 : 0;
+          }
+
+          if (e.id == 'cpf') {
+            var r = cpfError(e.value);
+
+            if (typeof r === 'string') {
+              return s ? (e.value = r) && 0 : 0;
+            }
+
+            return e.hasAttribute('required') ? m : 0;
+          }
+
+          if ((e.value.trim().length === 0) && e.hasAttribute('required')) {
+            return m;
+          }
+
+          var p = e.getAttribute('pattern');
+
+          if (p && !(new RegExp(p, 'i')).test(e.value)) {
+            return m;
+          }
+
+          return 0;
+        })(msgField.replace(/\$\{0\}/g, e.getAttribute('hint')));
+      };
 
       var _on = () => {
-        try {
-          checkVersion();
-        } catch (err) {
-        }
-
         saveICOeffect();
+
         var j = $("input");
 
         for (var i = 0; i < j.length; i++) {
-          j[i].id = "i" + i;
+          if ((!j[i].id) || (j[i].id.length < 2)) {
+            j[i].id = "i" + i;
+          }
           j[i].value = w.localStorage.getItem(j[i].id) ? w.localStorage.getItem(j[i].id) : "";
           j[i].on("blur", save);
-          j[i].on("onchange", save);
           j[i].on("onkeyup", save);
         }
 
@@ -101,7 +232,24 @@
           return (x.getDate() + "").padStart(2, "0") + " de " + cptlz(x.toLocaleString("default", { month: "long" })) + " de " + x.getFullYear();
         })();
 
-        $('.menu .print')[0].on('click', (e) => {
+        $('.menu .clear')[0].on('click', (e) => {
+          var j = $("input");
+
+          for (var i = 0; i < j.length; i++) {
+            if (!j[i].id.match(/^i\d+$/i)) {
+              continue;
+            }
+
+            j[i].value = "";
+          }
+        });
+
+        $('.menu .pdf.print')[0].on('click', (e) => {
+          console.log("Imprimindo PDF");
+          if (!chkInputs()) {
+            return;
+          }
+
           d.body.className = "imprimir";
 
           w.setTimeout(() => {
@@ -145,6 +293,69 @@
 
   <style type="text/css">
     @charset "UTF-8";
+
+    @font-face {
+      font-family: 'icos';
+      src: url('data:@file/octet-stream;base64,d09GRgABAAAAABDMAAsAAAAAEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAABCAAAAGAAAABgDxIHiWNtYXAAAAFoAAAAbAAAAGzUV9RtZ2FzcAAAAdQAAAAIAAAACAAAABBnbHlmAAAB3AAADFgAAAxYrpMF3mhlYWQAAA40AAAANgAAADYkXp/HaGhlYQAADmwAAAAkAAAAJAgCBFRobXR4AAAOkAAAAEwAAABMPu4A82xvY2EAAA7cAAAAKAAAACgVtBl4bWF4cAAADwQAAAAgAAAAIAAdAM5uYW1lAAAPJAAAAYYAAAGGmUoJ+3Bvc3QAABCsAAAAIAAAACAAAwAAAAMDrwGQAAUAAAKZAswAAACPApkCzAAAAesAMwEJAAAAAAAAAAAAAAAAAAAAARAAAAAAAAAAAAAAAAAAAAAAQAAA6rADwP/AAEADwABAAAAAAQAAAAAAAAAAAAAAIAAAAAAAAwAAAAMAAAAcAAEAAwAAABwAAwABAAAAHAAEAFAAAAAQABAAAwAAAAEAIOkL6VTqfuqw//3//wAAAAAAIOkA6VTqfuqw//3//wAB/+MXBBa8FZMVYgADAAEAAAAAAAAAAAAAAAAAAAAAAAEAAf//AA8AAQAAAAAAAAAAAAIAADc5AQAAAAABAAAAAAAAAAAAAgAANzkBAAAAAAEAAAAAAAAAAAACAAA3OQEAAAAAAwAA/8AEAAOtABsAMgBAAAABERQGIyImNREHBiInJjQ3ATYyFwEWFAcGIi8BASEUFjMyNjUhMhYdARQGIyEiJj0BNDYFMjY1NCYjMSIGFRQWMwJAJRsbJZMTNRITEwEAEjUTAQATExM1EpP+QAEASzU1SwEANUtLNf0ANUtLAxUUHBwUFBwcFALl/hsbJSUbAeWSExMSNRMBABMT/wATNRITE5L+GzVLSzVLNUA1S0s1QDVL0BwUFBwcFBQcAAAAAwAAAAAEAAOAABsAKwA5AAABMhYVEScBLgEjIgYPAScuASMiBg8CETQ2MyElIgYVERQWMyEyNjURNCYjATI2NTQmIzEiBhUUFjMDgA0TCv7wBxQLCxQHpj0HFAwMFAegCRMNAwD9ADVLSzUDADVLSzX9oCg4OCgoODgoAyATDf2ADQFgCQoKCdZVCQsLCeANAoENE2BLNf2ANUtLNQKANUv+gDgoKDg4KCg4AAIAcwAABEADTQAYAB4AAAkBBhQfAR4BMyEyNjU0JisBATY0JwEmIgcTIyc3AQcCRf4uJiagEi8ZApMbJSUb+AEFJib+7iZqJQ3moPoBEoYDTf4uJmoloBIUJhobJQEFJmolARMmJv0zoPn+7ocAAAADAAD/wAMAA8AAEQAUADAAABMiBhURFBYzITI2NREhIiY1ETMRIQUVNzYyFxYUDwEGIi8BJjQ3NjIfATU0NjMyFhWANUtLNQIANUv/ABslQAEA/rA+DigODg6QDigOkA4ODigOPhwUFBwDwEs1/QA1S0s1AkAlGwEA/wDQzD4ODg4oDpAODpAOKA4ODj7MFBwcFAAAAwAA/8AEAAPAABsAMQA/AAABNCYjIgYVEScmIgcGFBcBFjI3ATY0JyYiDwERASIGHQEUFjMhMjY9ATQmKwEHBiIvAQUyFhUUBiMxIiY1NDYzAkAlGxslkxM1EhMTAQASNRMBABMTEzUSk/5ANUtLNQMANUtLNctbJWomWgIVFBwcFBQcHBQDgBslJRv+G5ITExI1E/8AExMBABM1EhMTkgHl/YBLNUA1S0s1QDVLWyUlW3AcFBQcHBQUHAADAAAAAAOAA4AAMwA3AEUAABMRFBYzITI2NRE0Jic3HgEVERQGIyEiJjURNDYzITIWHwEHJyImMRUUBiMhIiY9ASMiBhU3FSE1AzQ2MzIWFTEUBiMiJjVgEw0CgA0TBQRDEhRLNf2ANUtLNQHrGTASlUSVAQEcFP6AFBwgDROgASDgSzU1S0s1NUsDAP2ADRMTDQHrBgwFQxIvGf4VNUtLNQKANUsTEpVElQHIFBwcFNATDSCgoP4gNUtLNTVLSzUAAAAAAwAAAAADgAOAABMAIwAxAAATIgYVERQWMyEyNjURNCYvAS4BIwU0NjMhMhYdARQGIyEiJjUFMhYVFAYjMSImNTQ2M4A1S0s1AoA1SxMSmxIvGv4bJRsBgBslJRv+gBslAUA1S0s1NUtLNQOASzX9gDVLSzUB5RovEpsSE8AbJSUbgBslJRvASzU1S0s1NUsABAAA/8AEAAPAABIAFgAwAD4AAAEiBh0BMzUhFxUzNTQmLwEuASMTFSE1BTMyNj0BNCYjISIGHQEUFjsBFRQWMyEyNjUDMhYVFAYjMSImNTQ2MwEANUuAAcU7gBMSOxIvGjv+AAKAQBslSzX9ADVLJRtASzUCADVLIBQcHBQUHBwUA8BLNcDAO4WFGi8SOxIT/UDAwEAlG8A1S0s1wBslgDVLSzUBkBwUFBwcFBQcAAAHAAD/wAPgA8AAEwAWACkAMgBCAEwAaAAAEzQ2MyERFBYzIREhIgYVESMiJjUBIREDMzIWFRQGKwEVFAYjIiY1ETQ2FzI2NTQmKwEVNzMyFh0BFAYrASImNRE0NhMyNj0BNCYrARU3NDY7ATIWFRQGKwEVMzIWFRQGKwEVFAYjIiY1AEs1AUAlGwEA/mA1S2A1SwMA/wCgQC5CQi4gEw0NExNNFBwcFCDgQCg4OChADRMTTQ0TEw0gwBMNYA0TEw1AQA0TEw1AEw0NEwNANUv/ABsl/uBLNf7gSzUCgAEA/UBCLi5CQA0TEw0BAA0ToBwUFBxgoDgogCg4Ew0BAA0T/wATDYANE8DgDRMTDQ0TQBMNDRNgDRMTDQAAAAgAQAAAA+ADYAAcACIAMgA8AEgAUQBcAGcAACUVFAYjISImNRE0NjMhFRQWOwEVISIGHQEUFjMhAxUUFjsBBSEyFh0BFAYjISImPQE0NgU1MzUjFTM1MzUlFTM1MzI2NTQmKwEXFTMyNjU0JiM3FTMyNj0BNCYrARcVMzI2PQE0JisBAqAlG/4gGyUmGgFAJhqg/uAoODgoASDAEw2g/uACIBomJRv94BomJQG7gKAgYP4AIEAaJiUbYCBADRMTDWBgGiYlG2AgQA0TEw1AgEAbJSYaAuAaJsAbJUA4KOAoOALgwA0TgCUb4BomJRvgGiagQCDgYCAgoGAlGxslIEATDQ0TIOAlG2AaJiCgEw1gDRMAAAkAAAAAA24DbgAMABoAKAA2AEMAUQBfALsAywAAATE8AScuAQcGFhceAScuAQcGFBceATcxNjQnJzE2JicqARUGFhc6ATUXMTY0Jy4BBwYWFx4BNxcxNiYnJgYHBhYXFjYzMTQmIyIGFRQWMzI2NTcxLgEjDgEVFBYzMjY1JTQnLgEnJiMiBw4BBwYVFBceARcWFxY2NTwBNTAGJzAmJzAmMzAWFxY2Nz4BNy4BNTQ2Ny4BNzYWMT4BMzIWFzA2FxYGBx4BFRQGBx4BFRQGFRQWNzY3PgE3NjUTERQGIyEiJjURNDYzITIWASkCAgUBAQECAgQOAgQBAgIBBAIBARgBAgIBAwEBAgIDDAECAQQBAQEBAQQBMQEDAwIEAQEDAwIEGQQDAgMDAwMDFwEEAwIDBAMCBAFuFxdPNTU9PTU1UBcXDw81JSUrCwlWDRIOExUhDBM1DQIKBzFVEA4CBwwTPhElExMkEj4TDAcDDxBVMQgMAQkLLCUkNg4Pk2FE/dxFYGBFAiREYQEJAQUCAQEBAgQCAQEZAQIBAQQCAgIBAQQDFgEDAQEBAwEBDQEEAQIBAQIDAgEBASsCBAEBAgIBBAEBAgEDAwECAwMCBAECAQMCAQIEArU8NjVPFxcXF081NjwxLCxIGxsPAgoGBh4TBSgjBxIJFSIEBQ4UBgU3VBgnEAUqHgYkBQUFBSQGHioFECcYVDcFBxsVHSsIBgoCDxsbSCwsMQES/dxFYGBFAiREYWEAAAABAAD/wAK8A8AAKgAAARYGBwEOASMiJicBLgE3PgE7ARE0JisBIiY9ATQ2OwEyFx4BFxYVETMyFgK8BgUK/vAHEgoKEgf+8AoFBgYYDrAlG6AbJSUboDUvLkYUFLAOGAEjDRwL/uAHCAgHASAKHQ0NEAGAGyUlG0AbJRQURi4vNf6AEAAEAAAAAAQAA4AAAwAXACMAJwAAASEVIQUhIgYVERQWOwERIREzMjY1ETQmBSImNTQ2MzIWFRQGASERIQEAAgD+AALA/IAaJiYawAIAwBomJvymGyUlGxslJQIl/oABgAOAgEAmGv7AGib/AAEAJhoBQBomwCUbGyUlGxsl/kABQAAAAAAEAEAAAAPAA4AAAwAHAA0AFAAAExEhEQMhESEBEScRIScBFwcXNxcRwAMAQP2AAoD9AEADIED+QKDAYMCgA4D9AAMA/UACgP0AAqBA/OBAAoCgwGDAoAGgAAAAAAEAAP/OBAADswBjAAABIgcOAQcGFRQXHgEXFhcWNjU8AScGJjEuATEmNjEeATEWNjc+ATcmJy4BJyY1NDY3LgE3MBYXPgEzMhYXPgExFgYHHgEVFAcOAQcGBx4BFRQGFRQWNzY3PgE3NjU0Jy4BJyYjAgBqXV6LKCgaGl1BQEwTEAFqQhInIycmKCJdFgQSCysqKkIUFRwZBAwVQ0oeQSEhQR5KQxUMBBkcFRRDKikrDhUBEBNMQUBdGhooKIteXWoDsygoi11ealRNTYAvLxkEEgoJNiAXVCwfGAcDMjsHChgiCgUMDTgvL0kqRRsJSTUDMQgJCQgxAzVJCRtFKkovLjgMDQULMCM0TA0KEgQZLzB/TU1Ual5diygoAAAAAAEAAAAAAADlYmfJXw889QALBAAAAAAA4IAtpQAAAADggC2lAAD/wARAA8AAAAAIAAIAAAAAAAAAAQAAA8D/wAAABIAAAAAABEAAAQAAAAAAAAAAAAAAAAAAABMEAAAAAAAAAAAAAAACAAAABAAAAAQAAAAEgABzAwAAAAQAAAADgAAAA4AAAAQAAAAEAAAABAAAQANuAAADAAAABAAAAAQAAEAEAAAAAAAAAAAKABQAHgB+ANQBDAFWAbQCFgJeArYDRAPOBOoFLAVuBZwGLAABAAAAEwDMAAkAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAADgCuAAEAAAAAAAEABwAAAAEAAAAAAAIABwBgAAEAAAAAAAMABwA2AAEAAAAAAAQABwB1AAEAAAAAAAUACwAVAAEAAAAAAAYABwBLAAEAAAAAAAoAGgCKAAMAAQQJAAEADgAHAAMAAQQJAAIADgBnAAMAAQQJAAMADgA9AAMAAQQJAAQADgB8AAMAAQQJAAUAFgAgAAMAAQQJAAYADgBSAAMAAQQJAAoANACkaWNvbW9vbgBpAGMAbwBtAG8AbwBuVmVyc2lvbiAxLjAAVgBlAHIAcwBpAG8AbgAgADEALgAwaWNvbW9vbgBpAGMAbwBtAG8AbwBuaWNvbW9vbgBpAGMAbwBtAG8AbwBuUmVndWxhcgBSAGUAZwB1AGwAYQByaWNvbW9vbgBpAGMAbwBtAG8AbwBuRm9udCBnZW5lcmF0ZWQgYnkgSWNvTW9vbi4ARgBvAG4AdAAgAGcAZQBuAGUAcgBhAHQAZQBkACAAYgB5ACAASQBjAG8ATQBvAG8AbgAuAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: block;
+    }
+
+     table.fields tr td>span:after,
+    .ico:before {
+      font-family: 'icos' !important;
+      speak: never;
+      font-style: normal;
+      font-weight: normal;
+      font-variant: normal;
+    }
+
+    .ico-turn-down-solid:before {
+      content: "\e90b";
+    }
+    .ico-upload-solid:before {
+      content: "\e900";
+    }
+    .ico-image-regular:before {
+      content: "\e901";
+    }
+    .ico-eraser-solid:before {
+      content: "\e902";
+    }
+    .ico-file-arrow-down-solid:before {
+      content: "\e903";
+    }
+    .ico-download-solid1:before {
+      content: "\e904";
+    }
+    .ico-floppy-disk-regular:before {
+      content: "\e905";
+    }
+    .ico-floppy-disk-solid:before {
+      content: "\e906";
+    }
+    .ico-print-solid:before {
+      content: "\e907";
+    }
+    .ico-file-pdf-solid:before {
+      content: "\e908";
+    }
+    .ico-github-square:before {
+      content: "\e90a";
+    }
+    .ico-document-file-pdf:before {
+      content: "\e909";
+    }
+    .ico-printer:before {
+      content: "\e954";
+    }
+    .ico-new-tab:before {
+      content: "\ea7e";
+    }
+    .ico-github:before {
+      content: "\eab0";
+    }
 
     @page {
       size: 21cm 29.7cm;
@@ -234,8 +445,7 @@
     }
 
     table.fields tr td>span:after {
-      content: ": ";
-      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzODQgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMzUwIDMzNC41YzMuOCA4LjggMiAxOS00LjYgMjZsLTEzNiAxNDRjLTQuNSA0LjgtMTAuOCA3LjUtMTcuNCA3LjVzLTEyLjktMi43LTE3LjQtNy41bC0xMzYtMTQ0Yy02LjYtNy04LjQtMTcuMi00LjYtMjZzMTIuNS0xNC41IDIyLTE0LjVoODhsMC0xOTJjMC0xNy43LTE0LjMtMzItMzItMzJIMzJDMTQuMyA5NiAwIDgxLjcgMCA2NFYzMkMwIDE0LjMgMTQuMyAwIDMyIDBsODAgMGM3MC43IDAgMTI4IDU3LjMgMTI4IDEyOGwwIDE5Mmg4OGM5LjYgMCAxOC4yIDUuNyAyMiAxNC41eiIvPjwvc3ZnPg==') no-repeat;
+      content: ": \e90b";
       background-position: 1em;
       font-size: 1em;
       height: 1em;
@@ -308,10 +518,14 @@
       clear: both;
     }
 
-    div.autosave,
     div.nota {
       background: rgba(255, 100, 0, .5);
       color: #111;
+    }
+
+    div.autosave{
+      background: #2b92db;
+      color: #fff;
     }
 
     div.menu {
@@ -324,18 +538,25 @@
     }
 
     @media print {
+      div.versao {
+        display: block !important;
+      }
 
       .autosave,
       .menu,
       .nota,
       .cookie {
-        display: none;
+        display: none !important;
       }
 
       ::placeholder {
         color: #fff;
         opacity: 0;
       }
+    }
+
+    body.imprimir div.versao {
+      display: block !important;
     }
 
     body.imprimir .autosave,
@@ -353,34 +574,41 @@
     }
 
     .ico.baixar:before {
-      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMjg4IDMyYzAtMTcuNy0xNC4zLTMyLTMyLTMycy0zMiAxNC4zLTMyIDMyVjI3NC43bC03My40LTczLjRjLTEyLjUtMTIuNS0zMi44LTEyLjUtNDUuMyAwcy0xMi41IDMyLjggMCA0NS4zbDEyOCAxMjhjMTIuNSAxMi41IDMyLjggMTIuNSA0NS4zIDBsMTI4LTEyOGMxMi41LTEyLjUgMTIuNS0zMi44IDAtNDUuM3MtMzIuOC0xMi41LTQ1LjMgMEwyODggMjc0LjdWMzJ6TTY0IDM1MmMtMzUuMyAwLTY0IDI4LjctNjQgNjR2MzJjMCAzNS4zIDI4LjcgNjQgNjQgNjRINDQ4YzM1LjMgMCA2NC0yOC43IDY0LTY0VjQxNmMwLTM1LjMtMjguNy02NC02NC02NEgzNDYuNWwtNDUuMyA0NS4zYy0yNSAyNS02NS41IDI1LTkwLjUgMEwxNjUuNSAzNTJINjR6bTM2OCA1NmEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+') no-repeat;
     }
 
-    .ico.pdf:before {
-      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMCA2NEMwIDI4LjcgMjguNyAwIDY0IDBIMjI0VjEyOGMwIDE3LjcgMTQuMyAzMiAzMiAzMkgzODRWMzA0SDE3NmMtMzUuMyAwLTY0IDI4LjctNjQgNjRWNTEySDY0Yy0zNS4zIDAtNjQtMjguNy02NC02NFY2NHptMzg0IDY0SDI1NlYwTDM4NCAxMjh6TTE3NiAzNTJoMzJjMzAuOSAwIDU2IDI1LjEgNTYgNTZzLTI1LjEgNTYtNTYgNTZIMTkydjMyYzAgOC44LTcuMiAxNi0xNiAxNnMtMTYtNy4yLTE2LTE2VjQ0OCAzNjhjMC04LjggNy4yLTE2IDE2LTE2em0zMiA4MGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEgxOTJ2NDhoMTZ6bTk2LTgwaDMyYzI2LjUgMCA0OCAyMS41IDQ4IDQ4djY0YzAgMjYuNS0yMS41IDQ4LTQ4IDQ4SDMwNGMtOC44IDAtMTYtNy4yLTE2LTE2VjM2OGMwLTguOCA3LjItMTYgMTYtMTZ6bTMyIDEyOGM4LjggMCAxNi03LjIgMTYtMTZWNDAwYzAtOC44LTcuMi0xNi0xNi0xNkgzMjB2OTZoMTZ6bTgwLTExMmMwLTguOCA3LjItMTYgMTYtMTZoNDhjOC44IDAgMTYgNy4yIDE2IDE2cy03LjIgMTYtMTYgMTZINDQ4djMyaDMyYzguOCAwIDE2IDcuMiAxNiAxNnMtNy4yIDE2LTE2IDE2SDQ0OHY0OGMwIDguOC03LjIgMTYtMTYgMTZzLTE2LTcuMi0xNi0xNlY0MzIgMzY4eiIvPjwvc3ZnPg==') no-repeat;
+    .ico.print.pdf:before {
+      content: "\e908";
     }
 
     .ico.print:before {
-      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMTI4IDBDOTIuNyAwIDY0IDI4LjcgNjQgNjR2OTZoNjRWNjRIMzU0LjdMMzg0IDkzLjNWMTYwaDY0VjkzLjNjMC0xNy02LjctMzMuMy0xOC43LTQ1LjNMNDAwIDE4LjdDMzg4IDYuNyAzNzEuNyAwIDM1NC43IDBIMTI4ek0zODQgMzUydjMyIDY0SDEyOFYzODQgMzY4IDM1MkgzODR6bTY0IDMyaDMyYzE3LjcgMCAzMi0xNC4zIDMyLTMyVjI1NmMwLTM1LjMtMjguNy02NC02NC02NEg2NGMtMzUuMyAwLTY0IDI4LjctNjQgNjR2OTZjMCAxNy43IDE0LjMgMzIgMzIgMzJINjR2NjRjMCAzNS4zIDI4LjcgNjQgNjQgNjRIMzg0YzM1LjMgMCA2NC0yOC43IDY0LTY0VjM4NHpNNDMyIDI0OGEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+') no-repeat;
+      content: "\e954";
+    }
+
+    .ico.clear:before {
+      content: "\e902";
     }
 
     .ico.save:before {
-      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNNjQgMzJDMjguNyAzMiAwIDYwLjcgMCA5NlY0MTZjMCAzNS4zIDI4LjcgNjQgNjQgNjRIMzg0YzM1LjMgMCA2NC0yOC43IDY0LTY0VjE3My4zYzAtMTctNi43LTMzLjMtMTguNy00NS4zTDM1MiA1MC43QzM0MCAzOC43IDMyMy43IDMyIDMwNi43IDMySDY0em0wIDk2YzAtMTcuNyAxNC4zLTMyIDMyLTMySDI4OGMxNy43IDAgMzIgMTQuMyAzMiAzMnY2NGMwIDE3LjctMTQuMyAzMi0zMiAzMkg5NmMtMTcuNyAwLTMyLTE0LjMtMzItMzJWMTI4ek0yMjQgMjg4YTY0IDY0IDAgMSAxIDAgMTI4IDY0IDY0IDAgMSAxIDAtMTI4eiIvPjwvc3ZnPg==') no-repeat;
+      content: "\e906";
     }
 
     .ico.save2:before {
-      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuNC4wIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIzIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNNDggOTZWNDE2YzAgOC44IDcuMiAxNiAxNiAxNkgzODRjOC44IDAgMTYtNy4yIDE2LTE2VjE3MC41YzAtNC4yLTEuNy04LjMtNC43LTExLjNsMzMuOS0zMy45YzEyIDEyIDE4LjcgMjguMyAxOC43IDQ1LjNWNDE2YzAgMzUuMy0yOC43IDY0LTY0IDY0SDY0Yy0zNS4zIDAtNjQtMjguNy02NC02NFY5NkMwIDYwLjcgMjguNyAzMiA2NCAzMkgzMDkuNWMxNyAwIDMzLjMgNi43IDQ1LjMgMTguN2w3NC41IDc0LjUtMzMuOSAzMy45TDMyMC44IDg0LjdjLS4zLS4zLS41LS41LS44LS44VjE4NGMwIDEzLjMtMTAuNyAyNC0yNCAyNEgxMDRjLTEzLjMgMC0yNC0xMC43LTI0LTI0VjgwSDY0Yy04LjggMC0xNiA3LjItMTYgMTZ6bTgwLTE2djgwSDI3MlY4MEgxMjh6bTMyIDI0MGE2NCA2NCAwIDEgMSAxMjggMCA2NCA2NCAwIDEgMSAtMTI4IDB6Ii8+PC9zdmc+') no-repeat;
+       content: "\e905";
     }
 
     .ico:before {
       content: " ";
       display: inline-block;
-      min-height: 1.5em;
+      min-height: 1em;
+      font-size: 1.5em;
       width: 1.5em;
       float: left;
+      margin 0;
       margin-right: .5em;
     }
 
+    .btb,
+    .clear,
     .pdf,
     .baixar,
     .print {
@@ -396,10 +624,8 @@
       border-radius: .3em;
     }
 
-    .ico {
-      line-height: 1.6em;
-    }
-
+    .clear:hover,
+    .btb:hover,
     .pdf:hover,
     .baixar:hover,
     .print:hover {
@@ -412,6 +638,8 @@
       position: absolute;
       right: -3.65cm;
       top: 10.4cm;
+      display: none;
+      ;
     }
 
     div.versao *,
@@ -428,15 +656,17 @@
   <div class='main'>
     <div class='cookie'>Usa-se COOKIES, similares e script. É proibido permanecer, usar, imprimir e compartilhar se
       discordar.</div>
+      <div class='nota'>Versão atualizada disponível em <a href="https://modelos.jcem.pro/modeloCartaRendaAdmissional.html">modelos.jcem.pro/modeloCartaRendaAdmissional.html</a></div>
     <div class='nota'>Ao imprimir, desabilite o cabeçalho e rodape!</div>
     <div class='ico autosave'>Os dados são automaticamente salvos enquanto digita.</div>
 
     <div class='menu'>
-      <div class='ico print' style="display: none;" onclick="window.print();">Imprimir</div>
-      <div class='ico print'>Imprimir em PDF</div>
-      <a class='ico baixar'
+      <div class='ico print' style="display: none;">Imprimir</div>
+      <div class='ico pdf print'>Imprimir em PDF</div>
+      <div class='ico clear'>Limpar</div>
+      <!--<a class='ico baixar'
         onclick="this.href='data:text/html;charset=UTF-8,'+encodeURIComponent(document.documentElement.outerHTML)"
-        href="#" download="page.html">Baixar/Salvar Editor</a>
+        href="#" download="page.html">Baixar/Salvar Editor</a>-->
     </div>
     <p>&nbsp;</p>
     <p style=" text-align: right;">Pirassununga-SP, <span class="data"></span>,</p>
@@ -459,10 +689,11 @@
       </tr>
       <tr>
         <td colspan="4">
-          <input type="text" name='nome' placeholder="Dino da Silva Sauro" />
+          <input required type="text" name='nome' pattern="\w(\w{2,20} ){1,20}\w{2,20}" hint='Nome'
+            placeholder="Dino da Silva Sauro" />
         </td>
         <td>
-          <input type="text" placeholder="123.456.789-01" />
+          <input required type="text" id='cpf' hint="CPF" placeholder="123.456.789-01" />
         </td>
       </tr>
       <tbody>
@@ -473,13 +704,13 @@
         </tr>
         <tr>
           <td colspan="3">
-            <input type="text" placeholder="dinosauro@sauros.com.br" />
+            <input required type="email" hint="e-mail" placeholder="dinosauro@sauros.com.br" />
           </td>
           <td>
-            <input type="text" placeholder="(99) 9 9999-9999" />
+            <input required type="tel" hint="Celular" placeholder="(99) 9 9999-9999" />
           </td>
           <td>
-            <input type="text" placeholder="(19) 9 9999-9999" />
+            <input type="tel" hint="Recado" placeholder="(19) 9 9999-9999" />
           </td>
         </tr>
         <tr>
@@ -487,7 +718,7 @@
         </tr>
         <tr>
           <td colspan="5">
-            <input type="text" placeholder="Rua Era do Gero, 33" />
+            <input required type="text" hint="Logradouro" placeholder="Rua Era do Gero, 33" />
           </td>
         </tr>
         <tr>
@@ -496,10 +727,10 @@
         </tr>
         <tr>
           <td colspan="2">
-            <input type="text" placeholder="Natureza II" />
+            <input required type="text" hint="Bairro" placeholder="Natureza II" />
           </td>
           <td colspan="3">
-            <input type="text" placeholder="Pangéa" />
+            <input required type="text" hint="Município" placeholder="Pangéa" />
           </td>
         </tr>
         <tr>
@@ -510,16 +741,17 @@
         </tr>
         <tr>
           <td>
-            <input type="text" placeholder="GL" />
+            <input required type="text" hint="UF" placeholder="GL"
+              pattern="^(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)$" />
           </td>
           <td>
-            <input type="text" placeholder="00.000-000" />
+            <input required type="text" hint="CPF" placeholder="00.000-000" />
           </td>
           <td colspan="2">
-            <input type="text" placeholder="Pai de Família" />
+            <input required type="text" hint="Carga/Função" placeholder="Pai de Família" />
           </td>
           <td>
-            <input type="text" placeholder="9.999,99" />
+            <input required type="text" hint="Salário" placeholder="9.999,99" />
           </td>
         </tr>
       </tbody>
@@ -534,7 +766,7 @@
         </td>
         <td style="width: .5cm;max-width: .5cm;"></td>
         <td>
-          <p>Reconhecimento de Firma BB ou documento validado por telefone em</p>
+          <p>Reconhecimento de Firma BB ou documento validado em</p>
           <p>_____ / _____ / 20 _____ as _____H
             ______M, com _____________________________
           </p>
@@ -542,9 +774,10 @@
       </tr>
       <tr>
         <td style="border-top: 1px solid #111;">
-          <input type="text" name="nome" placeholder="Nome Empresa" /><br />
-          <input type="text" name="cnpj" placeholder="CNPJ Empresa" />
-          <input type="text" name="fone" placeholder="Telefone Empresa com DDD" /><br />
+          <input required type="text" id="nome" pattern="\w(\w{2,20} ){1,20}\w{2,20}" empresa
+            placeholder="Nome Empresa" /><br />
+          <input required type="text" id="cnpj" empresa placeholder="CNPJ Empresa" />
+          <input required type="tel" id="fone" empresa placeholder="Telefone Empresa com DDD" /><br />
           <span>Carimbo/Nome do Representante</span>
         </td>
         <td></td>
