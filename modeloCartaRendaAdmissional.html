@@ -164,7 +164,7 @@
           }
         })($('div.autosave')[0]);
 
-        w.setTimeout(() => { saveICOeffect(h ? 0 : 1) }, 700);
+        w.setTimeout(() => { saveICOeffect(h ? 0 : 1) }, 600);
       }
 
       var vEl = (e, s) => {
@@ -559,13 +559,13 @@
       margin-bottom: .65cm;
     }
 
-    div.autosave,
-    div.nota,
-    div.menu,
-    div.cookie {
+    .autosave,
+    .nota,
+    .menu,
+    .cookie {
       background: #ff3333;
       color: #fff;
-      padding: .5em .8rem;
+      padding: .4em .8rem;
       top: 0;
       left: 0;
       max-width: 100%;
@@ -584,6 +584,7 @@
 
     div.autosave:before {
       color: red;
+      font-size: 1.8em;
     }
 
     div.menu {
