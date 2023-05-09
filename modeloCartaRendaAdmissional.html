@@ -302,58 +302,71 @@
       font-display: block;
     }
 
-     table.fields tr td>span:after,
+    table.fields tr td>span:after,
     .ico:before {
       font-family: 'icos' !important;
-      speak: never;
       font-style: normal;
       font-weight: normal;
       font-variant: normal;
     }
 
-    .ico-turn-down-solid:before {
+    .turn-down:before {
       content: "\e90b";
     }
-    .ico-upload-solid:before {
+
+    .upload:before {
       content: "\e900";
     }
-    .ico-image-regular:before {
+
+    .image:before {
       content: "\e901";
     }
-    .ico-eraser-solid:before {
+
+    .eraser:before {
       content: "\e902";
     }
-    .ico-file-arrow-down-solid:before {
+
+    .file-down:before {
       content: "\e903";
     }
-    .ico-download-solid1:before {
+
+    .download:before {
       content: "\e904";
     }
-    .ico-floppy-disk-regular:before {
+
+    .floppy:before {
       content: "\e905";
     }
-    .ico-floppy-disk-solid:before {
+
+    .floppy-solid:before {
       content: "\e906";
     }
-    .ico-print-solid:before {
+
+    .print-solid:before {
       content: "\e907";
     }
-    .ico-file-pdf-solid:before {
+
+    .fpdf2:before {
       content: "\e908";
     }
-    .ico-github-square:before {
+
+    .github2:before {
       content: "\e90a";
     }
-    .ico-document-file-pdf:before {
+
+    .fpdf:before {
       content: "\e909";
     }
-    .ico-printer:before {
+
+    .printer:before {
       content: "\e954";
     }
-    .ico-new-tab:before {
+
+    .new-tab:before {
       content: "\ea7e";
     }
-    .ico-github:before {
+
+    .github:before {
       content: "\eab0";
     }
 
@@ -510,22 +523,25 @@
     div.cookie {
       background: #ff3333;
       color: #fff;
-      padding: .8rem;
+      padding: .5em .8rem;
       top: 0;
       left: 0;
       max-width: 100%;
-      font-weight: bold;
       clear: both;
     }
 
     div.nota {
-      background: rgba(255, 100, 0, .5);
+      background: #ddd;
       color: #111;
     }
 
-    div.autosave{
-      background: #2b92db;
-      color: #fff;
+    div.autosave {
+      background: #222;
+      color: #eee;
+    }
+
+    div.autosave:before{
+      color: red;
     }
 
     div.menu {
@@ -573,8 +589,7 @@
       display: none;
     }
 
-    .ico.baixar:before {
-    }
+    .ico.baixar:before {}
 
     .ico.print.pdf:before {
       content: "\e908";
@@ -582,6 +597,10 @@
 
     .ico.print:before {
       content: "\e954";
+    }
+
+    .ico.timbre:before {
+      content: "\e901";
     }
 
     .ico.clear:before {
@@ -593,7 +612,7 @@
     }
 
     .ico.save2:before {
-       content: "\e905";
+      content: "\e905";
     }
 
     .ico:before {
@@ -603,32 +622,24 @@
       font-size: 1.5em;
       width: 1.5em;
       float: left;
-      margin 0;
-      margin-right: .5em;
+      margin: 0;
     }
 
-    .btb,
-    .clear,
-    .pdf,
-    .baixar,
-    .print {
+    .menu > * {
+      position: relative;
       text-decoration: none;
       background-size: 1.5rem;
       background-position: .3rem center;
       display: inline-block;
       margin: -.3rem .1rem;
-      position: relative;
       padding: .75rem;
       cursor: pointer;
       color: #555;
+      max-height: 1.2em;
       border-radius: .3em;
     }
 
-    .clear:hover,
-    .btb:hover,
-    .pdf:hover,
-    .baixar:hover,
-    .print:hover {
+    .menu > *:hover {
       background-color: #2b92db;
       color: #fff;
     }
@@ -656,14 +667,17 @@
   <div class='main'>
     <div class='cookie'>Usa-se COOKIES, similares e script. É proibido permanecer, usar, imprimir e compartilhar se
       discordar.</div>
-      <div class='nota'>Versão atualizada disponível em <a href="https://modelos.jcem.pro/modeloCartaRendaAdmissional.html">modelos.jcem.pro/modeloCartaRendaAdmissional.html</a></div>
+    <div class='nota'>Versão atualizada disponível em <a
+        href="https://modelos.jcem.pro/modeloCartaRendaAdmissional.html">modelos.jcem.pro/modeloCartaRendaAdmissional.html</a>
+    </div>
     <div class='nota'>Ao imprimir, desabilite o cabeçalho e rodape!</div>
     <div class='ico autosave'>Os dados são automaticamente salvos enquanto digita.</div>
 
     <div class='menu'>
       <div class='ico print' style="display: none;">Imprimir</div>
-      <div class='ico pdf print'>Imprimir em PDF</div>
+      <div class='ico pdf print'>Imprimir PDF</div>
       <div class='ico clear'>Limpar</div>
+      <div class='ico timbre'>Timbre</div>
       <!--<a class='ico baixar'
         onclick="this.href='data:text/html;charset=UTF-8,'+encodeURIComponent(document.documentElement.outerHTML)"
         href="#" download="page.html">Baixar/Salvar Editor</a>-->
