@@ -24,6 +24,10 @@
         return this.addEventListener(e, f);
       };
 
+      HTMLInputElement.prototype.warn = function () {
+        return (!this.hasAttribute('hint')) ? null : msgField.replace(/\$\{0\}/g, this.getAttribute('hint'));
+      };
+
       var msg = (e, r, tit) => {
         return e.hasAttribute('empresa') ? (
           e.id == 'nome' ? msgNome : (e.id == 'cnpj' ? msgCNPJ : (tit ? msgFoneTit : msgFone))
@@ -54,6 +58,7 @@
         if (e.tratando) {
           return;
         }
+
         e.tratando = true;
         if (!e) return;
         let s = (ev.type === 'blur');
@@ -64,7 +69,7 @@
         }, 100);
 
         if (r) {
-          return s && (e.value.trim().length > 0) ? alert(msg(e, r)) : 0;
+          return (((e.value.trim().length > 0) && s) ? (typeof r == 'string' ? alert(msg(e, r)) : console.warn(msg(e, e.warn()))) : 0) + (e.value = '');
         }
 
         st.setItem(e.id, e.value);
@@ -207,7 +212,7 @@
               return s ? (e.value = r) && 0 : 0;
             }
 
-            return e.hasAttribute('required') ? m : 0;
+            return e.hasAttribute('required') ? m : -1;
           }
 
           if (e.getAttribute('type').toLowerCase() === 'tel') {
@@ -217,7 +222,7 @@
               return s ? (e.value = r) && 0 : 0;
             }
 
-            return e.hasAttribute('required') ? m : 0;
+            return e.hasAttribute('required') ? m : -1;
           }
 
           if (e.id == 'cep') {
@@ -227,7 +232,7 @@
               return s ? (e.value = r) && 0 : 0;
             }
 
-            return e.hasAttribute('required') ? m : 0;
+            return e.hasAttribute('required') ? m : -1;
           }
 
 
@@ -238,7 +243,7 @@
               return s ? (e.value = r) && 0 : 0;
             }
 
-            return e.hasAttribute('required') ? 1 : 0;
+            return e.hasAttribute('required') ? m : 0;
           }
 
           if (e.id == 'cpf') {
@@ -248,7 +253,7 @@
               return s ? (e.value = r) && 0 : 0;
             }
 
-            return e.hasAttribute('required') ? m : 0;
+            return e.hasAttribute('required') ? m : -1;
           }
 
           if ((e.value.trim().length === 0) && e.hasAttribute('required')) {
@@ -262,7 +267,7 @@
           }
 
           return 0;
-        })(msgField.replace(/\$\{0\}/g, e.getAttribute('hint')));
+        })(e.warn());
       };
 
       var loadTimbre = () => {
