@@ -93,6 +93,37 @@
         return rr ? r : ((11 - r) >= 10) ? 0 : (11 - r);
       };
 
+      var cepError = (c) => {
+        c = c.replace(/[^\d]/g, '');
+
+        if (c.length != 8) {
+          return -1;
+        }
+
+        return c.substring(0, 2) + "." + c.substring(2, 5) + '-' + c.substring(5);
+      };
+
+      var realFormat = (c) => {
+        c = c.replace(/[^\d,]/g, '');
+        c = c.replace(/[,]/g, '.');
+
+        if (c.trim().length == 0) {
+          return -1;
+        }
+
+
+        try {
+          c = parseFloat(c);
+        } catch (e) {
+          return -2;
+        }
+
+        return (new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        })).format(c);
+      };
+
       var foneError = (c) => {
         c = c.replace(/[^\d]/g, '');
 
@@ -169,6 +200,16 @@
 
       var vEl = (e, s) => {
         return ((m) => {
+          if (e.getAttribute('type').toLowerCase() === 'currency') {
+            var r = realFormat(e.value);
+
+            if (typeof r === 'string' && r.length > 0) {
+              return s ? (e.value = r) && 0 : 0;
+            }
+
+            return e.hasAttribute('required') ? m : 0;
+          }
+
           if (e.getAttribute('type').toLowerCase() === 'tel') {
             var r = foneError(e.value);
 
@@ -178,6 +219,17 @@
 
             return e.hasAttribute('required') ? m : 0;
           }
+
+          if (e.id == 'cep') {
+            var r = cepError(e.value);
+
+            if (typeof r === 'string') {
+              return s ? (e.value = r) && 0 : 0;
+            }
+
+            return e.hasAttribute('required') ? m : 0;
+          }
+
 
           if (e.id == 'cnpj') {
             var r = cnpjError(e.value);
@@ -769,7 +821,8 @@
         </tr>
         <tr>
           <td colspan="3">
-            <input pattern="[\w\d\.-_]@[\w\d-_]{3,64}(\.[\w\d-_]{2,64})+" type="email" hint="e-mail" placeholder="dinosauro@sauros.com.br" />
+            <input pattern="[\w\d\.-_]@[\w\d-_]{3,64}(\.[\w\d-_]{2,64})+" type="email" hint="e-mail"
+              placeholder="dinosauro@sauros.com.br" />
           </td>
           <td>
             <input required type="tel" hint="Celular" placeholder="(99) 9 9999-9999" />
@@ -810,13 +863,13 @@
               pattern="^(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)$" />
           </td>
           <td>
-            <input required type="text" hint="CPF" placeholder="00.000-000" />
+            <input required id='cep' type="text" hint="CEP" placeholder="00.000-000" />
           </td>
           <td colspan="2">
             <input required type="text" hint="Carga/Função" placeholder="Pai de Família" />
           </td>
           <td>
-            <input required type="text" hint="Salário" placeholder="9.999,99" />
+            <input required type="currency" hint="Salário" pattern="^[\w,\.]+$" placeholder="9.999,99" />
           </td>
         </tr>
       </tbody>
