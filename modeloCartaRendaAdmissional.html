@@ -290,6 +290,9 @@
         var j = $("input");
 
         for (var i = 0; i < j.length; i++) {
+          j[i].on("blur", save);
+          j[i].on("onkeyup", save);
+
           if (j[i].getAttribute('type') == 'file') {
             continue;
           }
@@ -298,8 +301,6 @@
             j[i].id = "i" + i;
           }
           j[i].value = st.getItem(j[i].id) ? st.getItem(j[i].id) : "";
-          j[i].on("blur", save);
-          j[i].on("onkeyup", save);
         }
 
         $("span.data")[0].innerHTML = (() => {
