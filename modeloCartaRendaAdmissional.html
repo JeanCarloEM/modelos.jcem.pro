@@ -15,23 +15,33 @@
   <script>
     (function (w, d, _, $, st) {
       const msgFoneTit = "TELEFONE da empresa INVÁLIDO!";
-      const msgFone = msgFoneTit + '\n\n\t- Deve conter 11 digitos\n\t- Um DDD Válido\n\t- Iniciar com "9"';
-      const msgCNPJ = 'CNPJ da empresa Inválido';
-      const msgNome = 'Nome da empresa Inválido!';
+      const msgIdx = {
+        "fone": msgFoneTit + '\n\n\t- Deve conter 11 digitos\n\t- Um DDD Válido\n\t- Iniciar com "9"',
+        "cnpj": 'CNPJ da empresa Inválido',
+        "nome": 'Nome da empresa Inválido!'
+      };
       const msgField = "Campo '${0}' vazio ou inválido";
 
       Node.prototype.on = function (e, f) {
         return this.addEventListener(e, f);
       };
 
-      HTMLInputElement.prototype.warn = function () {
-        return (!this.hasAttribute('hint')) ? null : msgField.replace(/\$\{0\}/g, this.getAttribute('hint'));
-      };
+      Node.prototype.attr = function (k, v) {
+        if (typeof v !== 'undefined') {
+          this.setAttribute(k, v);
+          return this;
+        }
 
-      var msg = (e, r, tit) => {
-        return e.hasAttribute('empresa') ? (
-          e.id == 'nome' ? msgNome : (e.id == 'cnpj' ? msgCNPJ : (tit ? msgFoneTit : msgFone))
-        ) : r;
+        if (this.hasAttribute(k)) {
+          let r = this.getAttribute(k);
+          return r ? r : true;
+        }
+      }
+
+      HTMLInputElement.prototype.warn = function () {
+        return (!this.attr('hint'))
+          ? (this.attr('empresa') ? (msgIdx.hasOwnProperty(this.id) ? msgIdx[this.id] : null) : null)
+          : msgField.replace(/\$\{0\}/g, this.attr('hint'));
       };
 
       var chkInputs = () => {
@@ -40,7 +50,7 @@
         for (var j = 0; j < i.length; j++) {
           let r = vEl(i[j]);
           if (typeof r === 'string') {
-            err += (err ? '\r\n' : '') + msg(i[j], r, 1);
+            err += (err ? '\r\n' : '') + i[j].warn();
           }
         }
 
@@ -69,7 +79,7 @@
         }, 100);
 
         if (r) {
-          return (((e.value.trim().length > 0) && s) ? (typeof r == 'string' ? alert(msg(e, r)) : console.warn(msg(e, e.warn()))) : 0) + (e.value = '');
+          return (((e.value.trim().length > 0) && s) ? (typeof r == 'string' ? alert(r) : console.warn(msg(e, e.warn()))) : 0) + (e.value = '');
         }
 
         st.setItem(e.id, e.value);
@@ -129,7 +139,7 @@
         })).format(c);
       };
 
-      var foneError = (c) => {
+      var celError = (c) => {
         c = c.replace(/[^\d]/g, '');
 
         if (c.length != 11) {
@@ -145,6 +155,20 @@
         }
 
         return "(" + c.substring(0, 2) + ") " + c[2] + ' ' + c.substring(3, 7) + '-' + c.substring(7);
+      };
+
+      var foneError = (c) => {
+        c = c.replace(/[^\d]/g, '');
+
+        if (c.length != 10) {
+          return -1;
+        }
+
+        if (parseInt(c.substring(0, 2)) < 11) {
+          return -3;
+        }
+
+        return "(" + c.substring(0, 2) + ") " + c.substring(2, 6) + '-' + c.substring(6);
       };
 
       var cnpjError = (c) => {
@@ -205,24 +229,27 @@
 
       var vEl = (e, s) => {
         return ((m) => {
-          if (e.getAttribute('type').toLowerCase() === 'currency') {
+          var tp = e.attr('type').toLowerCase();
+          var req = e.attr('required');
+
+          if (tp === 'currency') {
             var r = realFormat(e.value);
 
             if (typeof r === 'string' && r.length > 0) {
               return s ? (e.value = r) && 0 : 0;
             }
 
-            return e.hasAttribute('required') ? m : -1;
+            return req ? m : -1;
           }
 
-          if (e.getAttribute('type').toLowerCase() === 'tel') {
-            var r = foneError(e.value);
+          if (['tel', 'cel'].indexOf(tp) >= 0) {
+            var r = (tp == 'cel' ? celError : foneError)(e.value);
 
             if (typeof r === 'string') {
               return s ? (e.value = r) && 0 : 0;
             }
 
-            return e.hasAttribute('required') ? m : -1;
+            return req ? m : -1;
           }
 
           if (e.id == 'cep') {
@@ -232,7 +259,7 @@
               return s ? (e.value = r) && 0 : 0;
             }
 
-            return e.hasAttribute('required') ? m : -1;
+            return req ? m : -1;
           }
 
 
@@ -243,7 +270,7 @@
               return s ? (e.value = r) && 0 : 0;
             }
 
-            return e.hasAttribute('required') ? m : 0;
+            return req ? m : 0;
           }
 
           if (e.id == 'cpf') {
@@ -253,17 +280,23 @@
               return s ? (e.value = r) && 0 : 0;
             }
 
-            return e.hasAttribute('required') ? m : -1;
+            return req ? m : -1;
           }
 
-          if ((e.value.trim().length === 0) && e.hasAttribute('required')) {
+          if ((e.value.trim().length === 0) && e.attr('required')) {
             return m;
           }
 
-          var p = e.getAttribute('pattern');
+          var p = e.attr('pattern');
 
           if (p && !(new RegExp(p, 'i')).test(e.value)) {
             return m;
+          }
+
+          console.log(e.id);
+
+          if (e.id == 'nome') {
+            e.value = e.value.toUpperCase();
           }
 
           return 0;
@@ -293,7 +326,7 @@
           j[i].on("blur", save);
           j[i].on("onkeyup", save);
 
-          if (j[i].getAttribute('type') == 'file') {
+          if (j[i].attr('type') == 'file') {
             continue;
           }
 
@@ -349,7 +382,7 @@
             var j = $("input");
 
             for (var i = 0; i < j.length; i++) {
-              j[i].plc = j[i].getAttribute('placeholder');
+              j[i].plc = j[i].attr('placeholder');
               j[i].removeAttribute('placeholder')
             }
 
@@ -367,7 +400,7 @@
 
             w.setTimeout(() => {
               for (var i = 0; i < j.length; i++) {
-                j[i].setAttribute('placeholder', j[i].plc);
+                j[i].attr('placeholder', j[i].plc);
               }
 
               d.body.className = '';
@@ -827,14 +860,14 @@
         </tr>
         <tr>
           <td colspan="3">
-            <input pattern="[\w\d\.-_]@[\w\d-_]{3,64}(\.[\w\d-_]{2,64})+" type="email" hint="e-mail"
+            <input pattern="[\w\d\.\-_]@[\w\d\-_]{3,64}(\.[\w\d\-_]{2,64})+" type="email" hint="e-mail"
               placeholder="dinosauro@sauros.com.br" />
           </td>
           <td>
-            <input required type="tel" hint="Celular" placeholder="(99) 9 9999-9999" />
+            <input required type="cel" hint="Celular" placeholder="(99) 9 9999-9999" />
           </td>
           <td>
-            <input type="tel" hint="Recado" placeholder="(19) 9 9999-9999" />
+            <input type="cel" hint="Recado" placeholder="(19) 9 9999-9999" />
           </td>
         </tr>
         <tr>
@@ -901,7 +934,7 @@
           <input required type="text" id="nome" pattern="\w(\w{2,20} ){1,20}\w{2,20}" empresa
             placeholder="Nome Empresa" /><br />
           <input required type="text" id="cnpj" empresa placeholder="CNPJ Empresa" />
-          <input required type="tel" id="fone" empresa placeholder="Telefone Empresa com DDD" /><br />
+          <input required type="tel" id="fone" empresa placeholder="Telefone Fixo Empresa com DDD" /><br />
           <span>Carimbo/Nome do Representante</span>
         </td>
         <td></td>
