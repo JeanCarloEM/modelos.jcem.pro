@@ -315,6 +315,59 @@
           x.style.display = "block";
         })($('img.logo')[0]);
       };
+      
+      var _GET = (v) => {
+        v = Array.isArray(v) ? v : [v];
+        const _uri = (new URLSearchParams(window.location.search));
+        
+        let r = "";
+        for (let k = 0; k < v.length; k++){        
+          if (r.length > 0){
+            break;
+          }
+          
+          r = _uri.get(v[k]);
+          r = r ? r.trim() : "";
+        }
+         
+        return r;
+      };
+      
+      var getFromURI = () => {
+        __set = (k, v)=>{          
+          if (v.length > 0){                        
+            //$(k)[0].value = ""+(v.match(/^\s*data\:/i)?v:atob(v));
+            console.warn(atob(v));
+            
+            $(k)[0].value = ""+atob(v);
+            $(k)[0].dispatchEvent(new Event("blur"));
+            return true;
+          }
+        }
+        
+        let reload = false;
+        reload =  __set("#nome", _GET(["empresa", "nome"])) || reload;
+        reload =  __set("#cnpj", _GET("cnpj")) || reload;
+        reload =  __set("#fone", _GET(["tel", "fone", "telefone"]).replace(/[^\d]/g, '')) || reload;        
+
+        if (          
+          (()=>{
+            const timbre = _GET(["timbre", "logo"]);
+            
+            if (timbre.length==0){
+              return false;
+            }
+                        
+            st.setItem("timbre", atob(timbre));
+            w.setTimeout(loadTimbre, 100);
+            
+            return true;
+          })()
+          || reload
+        ){
+          window.location = '?';
+        }
+      };
 
       var _on = () => {
         saveICOeffect();
@@ -345,8 +398,10 @@
           e = e.target;
 
           const r = new FileReader();
+          
 
           r.addEventListener("load", () => {
+          console.warn(r.result);
             st.setItem("timbre", r.result);
             w.setTimeout(loadTimbre, 100);
           }, false);
@@ -407,10 +462,14 @@
             }, 50);
           }, 100);
         });
+        
+        getFromURI();
       };
 
       if (["interactive", "complete"].indexOf(d.readyState) >= 0) {
-        return _on();
+        return w.setTimeout(()=>{
+        _on();
+        }, 50);
       }
 
       d.on("DOMContentLoaded", _on);
