@@ -44,20 +44,21 @@
           : msgField.replace(/\$\{0\}/g, this.attr('hint'));
       };
 
-      var chkInputs = () => {
+      var chkInputs = (onlyEmpresas) => {
         var i = $('input');
         var err = '';
         for (var j = 0; j < i.length; j++) {
-          let r = vEl(i[j]);
+          let r = vEl(i[j], null, onlyEmpresas);          
           if (typeof r === 'string') {
             err += (err ? '\r\n' : '') + i[j].warn();
           }
-        }
+        }          
 
         if (err.length > 0) {
           alert(err);
           return false;
         }
+        
 
         return true;
       }
@@ -158,7 +159,7 @@
       };
 
       var foneError = (c) => {
-        c = c.replace(/[^\d]/g, '');
+        c = c.replace(/[^\d]/g, '');        
 
         if (c.length != 10) {
           return -1;
@@ -227,10 +228,12 @@
         w.setTimeout(() => { saveICOeffect(h ? 0 : 1) }, 600);
       }
 
-      var vEl = (e, s) => {
+      var vEl = (e, s, onlyEmpresa) => {
         return ((m) => {
+          onlyEmpresa = typeof onlyEmpresa === 'undefined' ? false : onlyEmpresa;
+          
           var tp = e.attr('type').toLowerCase();
-          var req = e.attr('required');
+          var req = (onlyEmpresa && e.attr('empresa')) || (!onlyEmpresa && e.attr('required'));
 
           if (tp === 'currency') {
             var r = realFormat(e.value);
@@ -243,7 +246,7 @@
           }
 
           if (['tel', 'cel'].indexOf(tp) >= 0) {
-            var r = (tp == 'cel' ? celError : foneError)(e.value);
+            var r = (tp == 'cel' ? celError : foneError)(e.value);            
 
             if (typeof r === 'string') {
               return s ? (e.value = r) && 0 : 0;
@@ -283,17 +286,15 @@
             return req ? m : -1;
           }
 
-          if ((e.value.trim().length === 0) && e.attr('required')) {
+          if ((e.value.trim().length === 0) && req) {
             return m;
           }
 
           var p = e.attr('pattern');
 
-          if (p && !(new RegExp(p, 'i')).test(e.value)) {
+          if ((e.value.length> 0) && p && !(new RegExp(p, 'i')).test(e.value)) {          
             return m;
-          }
-
-          console.log(e.id);
+          }          
 
           if (e.id == 'nome') {
             e.value = e.value.toUpperCase();
@@ -328,27 +329,61 @@
           
           r = _uri.get(v[k]);
           r = r ? r.trim() : "";
-        }
+        }        
          
         return r;
       };
       
-      var getFromURI = () => {
-        __set = (k, v)=>{          
-          if (v.length > 0){                        
-            //$(k)[0].value = ""+(v.match(/^\s*data\:/i)?v:atob(v));
-            console.warn(atob(v));
-            
-            $(k)[0].value = ""+atob(v);
-            $(k)[0].dispatchEvent(new Event("blur"));
-            return true;
+      var printin_pdf = (e) => {
+        d.body.className = "imprimir";
+
+        w.setTimeout(() => {
+          var j = $("input");
+
+          for (var i = 0; i < j.length; i++) {
+            j[i].plc = j[i].attr('placeholder');
+            j[i].removeAttribute('placeholder')
           }
+
+          let x = $('input[name=nome]')[0].value;
+          x = (x ? x : 'Modelo Carta Admissional') + '.pdf';
+          let opt = {
+            margin: [2.8, 1.5, 2, 1.5],
+            filename: x,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 6 },
+            jsPDF: { unit: 'cm', format: 'A4', orientation: 'portrait' }
+          };
+
+          html2pdf(d.documentElement, opt);
+
+          w.setTimeout(() => {
+            for (var i = 0; i < j.length; i++) {
+              j[i].attr('placeholder', j[i].plc);
+            }
+
+            d.body.className = '';
+          }, 50);
+        }, 100);
+      };
+      
+      var getFromURI = () => {
+        __set = (k, v, remove)=>{          
+          if (v.length == 0){                                    
+            return false;
+          }          
+                    
+          $(k)[0].value = ""+atob(v);
+          $(k)[0].value = (remove) ? $(k)[0].value.replace(remove, '') : $(k)[0].value;
+          $(k)[0].dispatchEvent(new Event("blur"));          
+          
+          return true;
         }
         
         let reload = false;
         reload =  __set("#nome", _GET(["empresa", "nome"])) || reload;
-        reload =  __set("#cnpj", _GET("cnpj")) || reload;
-        reload =  __set("#fone", _GET(["tel", "fone", "telefone"]).replace(/[^\d]/g, '')) || reload;        
+        reload =  __set("#cnpj", _GET("cnpj"), /[^\d]/) || reload;
+        reload =  __set("#fone", _GET(["tel", "fone", "telefone"]), /[^\d]/) || reload;        
 
         if (          
           (()=>{
@@ -368,6 +403,18 @@
           window.location = '?';
         }
       };
+      
+      var limpar = (e)=>{
+        var j = $("input");
+
+        for (var i = 0; i < j.length; i++) {
+          if (!j[i].id.match(/^i\d+$/i)) {
+            continue;
+          }
+
+          j[i].value = "";
+        }
+      }
 
       var _on = () => {
         saveICOeffect();
@@ -400,8 +447,7 @@
           const r = new FileReader();
           
 
-          r.addEventListener("load", () => {
-          console.warn(r.result);
+          r.addEventListener("load", () => {          
             st.setItem("timbre", r.result);
             w.setTimeout(loadTimbre, 100);
           }, false);
@@ -414,16 +460,23 @@
         });
 
         $('.menu .clear')[0].on('click', (e) => {
-          var j = $("input");
-
-          for (var i = 0; i < j.length; i++) {
-            if (!j[i].id.match(/^i\d+$/i)) {
-              continue;
-            }
-
-            j[i].value = "";
-          }
+          limpar(e);
         });
+        
+        $('.menu .share')[0].on('click', (e) => {
+          console.log("Compartilhar pré preenchido");
+          if (!chkInputs(true)) {
+            return;
+          }
+        
+          let r = "?tel="+btoa($("#fone")[0].value.replace(/[^\d]/, ''));
+          r += "&cnpj="+btoa($("#cnpj")[0].value.replace(/[^\d]/, ''));
+          r += "&empresa="+btoa($("#nome")[0].value);
+          r += "&timbre="+btoa(st.getItem('timbre'));
+          
+          navigator.clipboard.writeText("https://modelos.jcem.pro/modeloCartaRendaAdmissional.html"+r);
+          alert("Endereço do modelo pré preenchido copiado para a área de transferência.");
+        });        
 
         $('.menu .pdf.print')[0].on('click', (e) => {
           console.log("Imprimindo PDF");
@@ -431,37 +484,18 @@
             return;
           }
 
-          d.body.className = "imprimir";
-
-          w.setTimeout(() => {
-            var j = $("input");
-
-            for (var i = 0; i < j.length; i++) {
-              j[i].plc = j[i].attr('placeholder');
-              j[i].removeAttribute('placeholder')
-            }
-
-            let x = $('input[name=nome]')[0].value;
-            x = (x ? x : 'Modelo Carta Admissional') + '.pdf';
-            let opt = {
-              margin: [2.8, 1.5, 2, 1.5],
-              filename: x,
-              image: { type: 'jpeg', quality: 0.98 },
-              html2canvas: { scale: 6 },
-              jsPDF: { unit: 'cm', format: 'A4', orientation: 'portrait' }
-            };
-
-            html2pdf(d.documentElement, opt);
-
-            w.setTimeout(() => {
-              for (var i = 0; i < j.length; i++) {
-                j[i].attr('placeholder', j[i].plc);
-              }
-
-              d.body.className = '';
-            }, 50);
-          }, 100);
+          printin_pdf(e);
         });
+        
+        $('.menu .pdf.formulario')[0].on('click', (e) => {
+          console.log("Imprimindo Formulário PDF");
+          if (!chkInputs(true)) {
+            return;
+          }
+
+          limpar(e);
+          printin_pdf(e);
+        });        
         
         getFromURI();
       };
@@ -554,6 +588,7 @@
     .github:before {
       content: "\eab0";
     }
+    
 
     @page {
       size: 21cm 29.7cm;
@@ -783,6 +818,11 @@
     }
 
     .ico.baixar:before {}
+    
+    .ico.share:before{
+      content: "➦";
+      font-family: "Noto Sans", "sans serif", "tahoma";
+    }        
 
     .ico.print.pdf:before {
       content: "\e908";
@@ -871,14 +911,16 @@
         href="https://modelos.jcem.pro/modeloCartaRendaAdmissional.html">modelos.jcem.pro/modeloCartaRendaAdmissional.html</a>
     </div>
     <div class='nota'>Ao imprimir, desabilite o cabeçalho e rodape!</div>
-    <div class='ico autosave'>Salvamento automático.</div>
+    <div class='ico autosave'>Salvamento offline automático.</div>
 
     <div class='menu'>
       <div class='ico print' style="display: none;">Imprimir</div>
       <div class='ico pdf print'>Imprimir PDF</div>
+      <div class='ico pdf formulario'>Manuscrito</div>
       <div class='ico clear'>Limpar</div>
       <input type='file' id="logo" accept=".svg,.jpg,.jpeg,.png" />
       <label for="logo" class='ico timbre'>Timbre</label>
+      <div class='ico share'>Share</div>
       <!--<a class='ico baixar'
         onclick="this.href='data:text/html;charset=UTF-8,'+encodeURIComponent(document.documentElement.outerHTML)"
         href="#" download="page.html">Baixar/Salvar Editor</a>-->
@@ -964,7 +1006,7 @@
             <input required id='cep' type="text" hint="CEP" placeholder="00.000-000" />
           </td>
           <td colspan="2">
-            <input required type="text" hint="Carga/Função" placeholder="Pai de Família" />
+            <input required type="text" hint="Cargo/Função" placeholder="Pai de Família" />
           </td>
           <td>
             <input required type="currency" hint="Salário" pattern="^[\w,\.]+$" placeholder="9.999,99" />
