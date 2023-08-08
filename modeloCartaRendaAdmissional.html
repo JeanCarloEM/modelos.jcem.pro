@@ -20,6 +20,16 @@
         "cnpj": 'CNPJ da empresa Inválido',
         "nome": 'Nome da empresa Inválido!'
       };
+      
+      const page_cfg = {
+        size: [21, 29.7],
+        left: 1.4,
+        right: .5,
+        top: 1,
+        bottom: 1.5,
+        unit: "cm"
+      };
+      
       const msgField = "Campo '${0}' vazio ou inválido";
 
       Node.prototype.on = function (e, f) {
@@ -348,12 +358,12 @@
           let x = $('input[name=nome]')[0].value;
           x = (x ? x : 'Modelo Carta Admissional') + '.pdf';
           let opt = {
-            margin: [2.8, 1.5, 2, 1.5],
+            margin: [page_cfg.top, page_cfg.left, page_cfg.bottom, page_cfg.right],
             filename: x,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 6 },
-            jsPDF: { unit: 'cm', format: 'A4', orientation: 'portrait' }
-          };
+            jsPDF: { unit: page_cfg.unit, format: page_cfg.size, orientation: 'portrait' }
+          };          
 
           html2pdf(d.documentElement, opt);
 
@@ -415,10 +425,18 @@
           j[i].value = "";
         }
       }
+      
+      var createPageStyle = () => {
+        const stl = document.createElement('style');
+        stl.textContent = "@page{size: "+page_cfg.size[0]+page_cfg.unit+" "+page_cfg.size[1]+page_cfg.unit+";margin-left: "+page_cfg.left+page_cfg.unit+"; margin-right: "+page_cfg.right+page_cfg.unit+";margin-top: "+page_cfg.top+page_cfg.unit+"; margin-bottom: "+page_cfg.bottom+page_cfg.unit+";";
+        stl.textContent += "*{max-width: calc("+page_cfg.size[0]+page_cfg.unit+" - "+(0+page_cfg.left+page_cfg.right)+page_cfg.unit+");}";
+        document.head.appendChild(stl);              
+      }
 
       var _on = () => {
         saveICOeffect();
         loadTimbre();
+        createPageStyle();
 
         var j = $("input");
 
@@ -589,16 +607,9 @@
       content: "\eab0";
     }
     
-
     @page {
-      size: 21cm 29.7cm;
-      margin-left: 1.5cm;
-      margin-right: 1.2cm;
-      margin-top: 1cm;
-      margin-bottom: 2cm;
       background: #fff;
     }
-
 
     div.main {
       width: calc(100% - .3cm);
@@ -608,7 +619,7 @@
     html,
     body {
       background: #fff;
-    }
+    }   
 
     p {
       margin-bottom: 0.2cm;
@@ -622,8 +633,7 @@
     }
 
     * {
-      line-height: 1.15em;
-      max-width: calc(21cm - 3cm);
+      line-height: 1.15em;      
     }
 
     *,
@@ -782,8 +792,12 @@
     }
 
     @media print {
+      body{
+        margin-right: .9cm;
+      }
+      
       div.versao {
-        display: block !important;
+        display: flex !important;
       }
 
       .autosave,
@@ -798,9 +812,13 @@
         opacity: 0;
       }
     }
+    
+    body.imprimir{
+      margin-right: .9cm;
+    }    
 
     body.imprimir div.versao {
-      display: block !important;
+      display: flex !important;
     }
 
     body.imprimir .autosave,
@@ -886,11 +904,10 @@
 
     div.versao {
       transform: rotate(-90deg);
-      position: absolute;
-      right: -3.65cm;
-      top: 10.4cm;
-      display: none;
-      ;
+      position: fixed;
+      right: -3.55cm;
+      top: 12.4cm;
+      display: none;      
     }
 
     div.versao *,
@@ -916,7 +933,7 @@
     <div class='menu'>
       <div class='ico print' style="display: none;">Imprimir</div>
       <div class='ico pdf print'>Imprimir PDF</div>
-      <div class='ico pdf formulario'>Manuscrito</div>
+      <div class='ico pdf formulario'>Imprimir Branco</div>
       <div class='ico clear'>Limpar</div>
       <input type='file' id="logo" accept=".svg,.jpg,.jpeg,.png" />
       <label for="logo" class='ico timbre'>Timbre</label>
@@ -1032,7 +1049,7 @@
       </tr>
       <tr>
         <td style="border-top: 1px solid #111;">
-          <input required type="text" id="nome" pattern="\w(\w{2,20} ){1,20}\w{2,20}" empresa
+          <input required type="text" id="nome" pattern="\w{1,20}(\ \w{1,20})" empresa
             placeholder="Nome Empresa" /><br />
           <input required type="text" id="cnpj" empresa placeholder="CNPJ Empresa" />
           <input required type="tel" id="fone" empresa placeholder="Telefone Fixo Empresa com DDD" /><br />
